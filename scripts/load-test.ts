@@ -49,14 +49,15 @@ function summarize(label: string, outcomes: Outcome[]) {
 async function main() {
   console.log(`Load test: ${CLIENT_COUNT} concurrent clients against ${BASE_URL}, room ${ROOM_CODE}`);
 
-  const runId = Date.now();
+  // Keep usernames within the join route's 20-character limit.
+  const runId = Date.now().toString(36).slice(-5);
   const joinOutcomes = await Promise.all(
     Array.from({ length: CLIENT_COUNT }, (_, i) =>
       timed(() =>
         fetch(`${BASE_URL}/api/rooms/join`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ room_code: ROOM_CODE, username: `loadtest_${runId}_${i}` }),
+          body: JSON.stringify({ room_code: ROOM_CODE, username: `lt_${runId}_${i}` }),
         })
       )
     )
