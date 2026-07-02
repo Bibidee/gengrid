@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase-server';
-import { deriveSlotsAndNumbering, validateGrid, type Cell } from '@/lib/crossword-derive';
+import { deriveSlotsAndNumbering, validateGrid, normalizeBlackCells } from '@/lib/crossword-derive';
 
 export async function GET(request: Request) {
   const auth = await requireAdmin(request);
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const name = typeof body?.name === 'string' ? body.name.trim() : '';
   const board_size = Number(body?.board_size);
-  const black_cells = Array.isArray(body?.black_cells) ? (body.black_cells as Cell[]) : null;
+  const black_cells = normalizeBlackCells(body?.black_cells);
 
   if (!name || ![11, 13, 15].includes(board_size) || !black_cells) {
     return NextResponse.json(
@@ -61,7 +61,12 @@ export async function POST(request: Request) {
       board_size,
       rows: board_size,
       cols: board_size,
-      grid_layout: { black_cells, clue_numbers: derived.clue_numbers },
+      // Store black_cells as [row, col] pairs — the format the play payload
+      // and seed templates use — regardless of the shape the client sent.
+      grid_layout: {
+        black_cells: black_cells.map((c) => [c.row, c.col]),
+        clue_numbers: derived.clue_numbers,
+      },
       clue_slots: derived.slots,
       source: 'admin_designed',
       created_by: auth.adminId,

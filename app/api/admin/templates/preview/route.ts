@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
-import { deriveSlotsAndNumbering, validateGrid, type Cell } from '@/lib/crossword-derive';
+import { deriveSlotsAndNumbering, validateGrid, normalizeBlackCells } from '@/lib/crossword-derive';
 
 export async function POST(request: Request) {
   const auth = await requireAdmin(request);
@@ -8,7 +8,7 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => null);
   const board_size = Number(body?.board_size);
-  const black_cells = Array.isArray(body?.black_cells) ? (body.black_cells as Cell[]) : null;
+  const black_cells = normalizeBlackCells(body?.black_cells);
 
   if (![11, 13, 15].includes(board_size) || !black_cells) {
     return NextResponse.json({ error: 'board_size (11/13/15) and black_cells are required' }, { status: 400 });

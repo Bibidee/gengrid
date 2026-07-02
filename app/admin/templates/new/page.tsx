@@ -57,8 +57,17 @@ export default function GridDesignerPage() {
         method: 'POST',
         body: JSON.stringify({ board_size: boardSize, black_cells }),
       });
-      const data = await res.json();
-      setPreview(data);
+      const data = await res.json().catch(() => null);
+      if (res.ok && data && Array.isArray(data.errors) && Array.isArray(data.slots)) {
+        setPreview(data);
+      } else {
+        setPreview({
+          valid: false,
+          errors: [data?.error ?? 'Preview failed — please try again.'],
+          clue_numbers: {},
+          slots: [],
+        });
+      }
     }, 200);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);

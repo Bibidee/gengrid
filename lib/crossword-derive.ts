@@ -4,6 +4,30 @@
 
 export type Cell = { row: number; col: number };
 
+/**
+ * Accepts black cells as either `{row, col}` objects or `[row, col]` pairs
+ * (the wire/storage format used in `grid_layout.black_cells`) and normalizes
+ * to `Cell[]`. Returns null if any entry is malformed.
+ */
+export function normalizeBlackCells(input: unknown): Cell[] | null {
+  if (!Array.isArray(input)) return null;
+  const cells: Cell[] = [];
+  for (const entry of input) {
+    let row: number, col: number;
+    if (Array.isArray(entry) && entry.length === 2) {
+      [row, col] = entry;
+    } else if (entry && typeof entry === 'object' && 'row' in entry && 'col' in entry) {
+      row = (entry as Cell).row;
+      col = (entry as Cell).col;
+    } else {
+      return null;
+    }
+    if (!Number.isInteger(row) || !Number.isInteger(col)) return null;
+    cells.push({ row, col });
+  }
+  return cells;
+}
+
 export type Direction = 'across' | 'down';
 
 export type Slot = {
