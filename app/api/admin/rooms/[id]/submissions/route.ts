@@ -17,7 +17,9 @@ export async function GET(
       'id, player_id, submitted_answers, score, correct_letters, correct_words, total_letters, total_words, submitted_at, time_used_seconds, player_sessions(username)'
     )
     .eq('room_id', id)
-    .order('score', { ascending: false });
+    .order('score', { ascending: false })
+    .order('time_used_seconds', { ascending: true })
+    .order('submitted_at', { ascending: true });
 
   if (error) return NextResponse.json({ error: 'Failed to load submissions' }, { status: 500 });
 
