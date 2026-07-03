@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   cellValuesToWords,
   computeFinalLeaderboard,
+  gradeSubmission,
   POINTS_PER_LETTER,
   WORD_BONUS,
   COMPLETION_BONUS,
@@ -130,7 +131,52 @@ describe('computeFinalLeaderboard', () => {
     expect(lb[0].score).toBe(6 * POINTS_PER_LETTER + 2 * WORD_BONUS + COMPLETION_BONUS);
   });
 
+  it('reports words-correct counts for auto-scored players and passes through submitters', () => {
+    const submitterWithWords: FinalPlayerInput = {
+      id: 'a',
+      username: 'alice',
+      submission: {
+        score: 500,
+        time_used_seconds: 120,
+        submitted_at: '2026-01-01T00:02:00Z',
+        correct_words: 2,
+        total_words: 2,
+      },
+    };
+    const lb = computeFinalLeaderboard(CLUES, [ghost, partialSyncer, submitterWithWords], DURATION);
+
+    const alice = lb.find((e) => e.player_id === 'a')!;
+    expect(alice.correct_words).toBe(2);
+    expect(alice.total_words).toBe(2);
+
+    const bob = lb.find((e) => e.player_id === 'b')!;
+    expect(bob.correct_words).toBe(1); // CAT correct, CAR partial
+    expect(bob.total_words).toBe(2);
+
+    const carol = lb.find((e) => e.player_id === 'c')!;
+    expect(carol.correct_words).toBe(0);
+    expect(carol.total_words).toBe(2);
+  });
+
+  it('reports null words-correct for legacy submissions lacking the counts', () => {
+    const lb = computeFinalLeaderboard(CLUES, [submitter], DURATION);
+    expect(lb[0].correct_words).toBeNull();
+    expect(lb[0].total_words).toBeNull();
+  });
+
   it('returns an empty leaderboard for a room nobody joined', () => {
     expect(computeFinalLeaderboard(CLUES, [], DURATION)).toEqual([]);
+  });
+});
+
+describe('gradeSubmission', () => {
+  it('returns per-clue booleans only — never answers', () => {
+    const grading = gradeSubmission(CLUES, { '1-across': 'cat', '1-down': 'CAB' });
+    expect(grading).toEqual({ '1-across': true, '1-down': false });
+  });
+
+  it('marks missing answers incorrect', () => {
+    const grading = gradeSubmission(CLUES, {});
+    expect(grading).toEqual({ '1-across': false, '1-down': false });
   });
 });

@@ -11,7 +11,9 @@
 import { supabaseServer } from './supabase-server';
 import { redis } from './redis';
 import {
+  cellValuesToWords,
   computeFinalLeaderboard,
+  scoreSubmission,
   type FinalClue,
   type FinalEntry,
   type FinalPlayerInput,
@@ -87,11 +89,21 @@ export async function finalizeRoom(
   }
 
   // Room is marked finished in the DB. Read persisted ranks.
-  const { data: players } = await supabaseServer
-    .from('player_sessions')
-    .select('id, username, score, rank, time_used_seconds, status')
-    .eq('room_id', room.id)
-    .order('rank', { ascending: true });
+  const [{ data: players }, { data: subs }] = await Promise.all([
+    supabaseServer
+      .from('player_sessions')
+      .select('id, username, score, rank, time_used_seconds, status')
+      .eq('room_id', room.id)
+      .order('rank', { ascending: true }),
+    supabaseServer
+      .from('submissions')
+      .select('player_id, correct_words, total_words')
+      .eq('room_id', room.id),
+  ]);
+
+  const wordsByPlayer = new Map(
+    (subs ?? []).map((s) => [s.player_id as string, s])
+  );
 
   const rows = players ?? [];
 
@@ -114,6 +126,8 @@ export async function finalizeRoom(
     time_used_seconds: p.time_used_seconds ?? room.duration_seconds,
     finished_by: p.status === 'submitted' ? 'submitted' : 'timeout',
     rank: p.rank as number,
+    correct_words: wordsByPlayer.get(p.id)?.correct_words ?? null,
+    total_words: wordsByPlayer.get(p.id)?.total_words ?? null,
   }));
 
   await redis.set(snapshotKey(room.id), leaderboard, { ex: SNAPSHOT_TTL_SECONDS });
@@ -128,7 +142,7 @@ async function scoreAndPersist(room: RoomForFinalize): Promise<FinalEntry[]> {
       .eq('room_id', room.id),
     supabaseServer
       .from('submissions')
-      .select('player_id, score, time_used_seconds, submitted_at')
+      .select('player_id, score, time_used_seconds, submitted_at, correct_words, total_words')
       .eq('room_id', room.id),
     room.puzzle_id
       ? supabaseServer
@@ -165,6 +179,8 @@ async function scoreAndPersist(room: RoomForFinalize): Promise<FinalEntry[]> {
             score: sub.score,
             time_used_seconds: sub.time_used_seconds,
             submitted_at: sub.submitted_at,
+            correct_words: sub.correct_words,
+            total_words: sub.total_words,
           }
         : null,
       synced_cells: syncedByPlayer.get(p.id) ?? null,
@@ -176,6 +192,33 @@ async function scoreAndPersist(room: RoomForFinalize): Promise<FinalEntry[]> {
     inputs,
     room.duration_seconds
   );
+
+  // Persist a submissions row for every auto-scored non-submitter too, so
+  // words-correct counts and post-game board review work for everyone.
+  // ignoreDuplicates makes this race-safe against a late player submit.
+  const finalClues = (clues ?? []) as FinalClue[];
+  const autoRows = playerRows
+    .filter((p) => !subByPlayer.has(p.id))
+    .map((p) => {
+      const words = cellValuesToWords(finalClues, syncedByPlayer.get(p.id) ?? {});
+      const result = scoreSubmission(finalClues, words);
+      return {
+        room_id: room.id,
+        player_id: p.id,
+        submitted_answers: words,
+        score: result.score,
+        correct_letters: result.correct_letters,
+        correct_words: result.correct_words,
+        total_letters: result.total_letters,
+        total_words: result.total_words,
+        time_used_seconds: room.duration_seconds,
+      };
+    });
+  if (autoRows.length > 0) {
+    await supabaseServer
+      .from('submissions')
+      .upsert(autoRows, { onConflict: 'player_id', ignoreDuplicates: true });
+  }
 
   await Promise.all(
     leaderboard.map((entry) =>

@@ -37,6 +37,8 @@ export type FinalPlayerInput = {
     score: number;
     time_used_seconds: number;
     submitted_at: string | null;
+    correct_words?: number | null;
+    total_words?: number | null;
   } | null;
   /** Latest server-synced per-cell answers ("r,c" -> letter) for non-submitters. */
   synced_cells?: Record<string, string> | null;
@@ -49,6 +51,8 @@ export type FinalEntry = {
   time_used_seconds: number;
   finished_by: 'submitted' | 'timeout';
   rank: number;
+  correct_words: number | null;
+  total_words: number | null;
 };
 
 /**
@@ -92,6 +96,8 @@ export function computeFinalLeaderboard(
         time_used_seconds: p.submission.time_used_seconds,
         finished_by: 'submitted' as const,
         submitted_at: p.submission.submitted_at,
+        correct_words: p.submission.correct_words ?? null,
+        total_words: p.submission.total_words ?? null,
       };
     }
     const words = p.synced_cells ? cellValuesToWords(clues, p.synced_cells) : {};
@@ -103,6 +109,8 @@ export function computeFinalLeaderboard(
       time_used_seconds: durationSeconds,
       finished_by: 'timeout' as const,
       submitted_at: null as string | null,
+      correct_words: result.correct_words,
+      total_words: result.total_words,
     };
   });
 
@@ -116,6 +124,23 @@ export function computeFinalLeaderboard(
   });
 
   return scored.map(({ submitted_at: _submitted_at, ...entry }, i) => ({ ...entry, rank: i + 1 }));
+}
+
+/**
+ * Post-game per-clue grading: "{clue_number}-{direction}" -> whether the
+ * submitted word is exactly correct. Booleans only — correct answers are
+ * never exposed. Only for use AFTER a room has finished.
+ */
+export function gradeSubmission(
+  clues: PuzzleClue[],
+  submitted: SubmittedAnswers
+): Record<string, boolean> {
+  const out: Record<string, boolean> = {};
+  for (const clue of clues) {
+    const key = `${clue.clue_number}-${clue.direction}`;
+    out[key] = normalize(submitted[key] ?? '') === normalize(clue.correct_answer);
+  }
+  return out;
 }
 
 export const POINTS_PER_LETTER = 10;

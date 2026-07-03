@@ -7,6 +7,8 @@ export type LeaderboardEntry = {
   time_used_seconds: number;
   finished_by: 'submitted' | 'timeout';
   rank: number;
+  correct_words?: number | null;
+  total_words?: number | null;
 };
 
 type Props = {
@@ -23,6 +25,7 @@ export function Leaderboard({ entries, highlightUsername }: Props) {
             <th className="px-3 py-2">#</th>
             <th className="px-3 py-2">Player</th>
             <th className="px-3 py-2 text-right">Score</th>
+            <th className="px-2 py-2 text-right">Words</th>
             <th className="px-3 py-2 text-right">Time</th>
           </tr>
         </thead>
@@ -44,12 +47,17 @@ export function Leaderboard({ entries, highlightUsername }: Props) {
                 )}
               </td>
               <td className="px-3 py-2 text-right">{e.score}</td>
+              <td className="whitespace-nowrap px-2 py-2 text-right text-slate-500">
+                {e.correct_words != null && e.total_words != null
+                  ? `${e.correct_words}/${e.total_words}`
+                  : '—'}
+              </td>
               <td className="px-3 py-2 text-right text-slate-500">{e.time_used_seconds}s</td>
             </tr>
           ))}
           {entries.length === 0 && (
             <tr>
-              <td colSpan={4} className="px-3 py-6 text-center text-slate-400">
+              <td colSpan={5} className="px-3 py-6 text-center text-slate-400">
                 No players in this room
               </td>
             </tr>
