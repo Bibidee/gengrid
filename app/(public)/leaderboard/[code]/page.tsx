@@ -6,6 +6,8 @@ import { usePolling } from '@/lib/use-polling';
 import { Leaderboard, type LeaderboardEntry } from '@/components/Leaderboard';
 import { Countdown } from '@/components/Countdown';
 import { loadPlayerSession } from '@/lib/player-session';
+import { computeClockOffsetMs } from '@/lib/clock';
+import Link from 'next/link';
 
 type View =
   | { kind: 'loading' }
@@ -20,6 +22,7 @@ export default function LeaderboardPage() {
 
   const [view, setView] = useState<View>({ kind: 'loading' });
   const [username, setUsername] = useState<string | undefined>();
+  const [clockOffsetMs, setClockOffsetMs] = useState(0);
 
   useEffect(() => {
     // localStorage only exists client-side, so this must run in an effect
@@ -41,6 +44,7 @@ export default function LeaderboardPage() {
           return;
         }
         if (data.ended === false) {
+          if (data.server_now) setClockOffsetMs(computeClockOffsetMs(data.server_now));
           setView({ kind: 'not_ended', ends_at: data.ends_at ?? null });
           return;
         }
@@ -75,7 +79,7 @@ export default function LeaderboardPage() {
               The round is still in progress. The leaderboard unlocks when the timer reaches 00:00.
             </p>
             {view.ends_at && (
-              <Countdown startsAt={new Date(0).toISOString()} endsAt={view.ends_at} />
+              <Countdown startsAt={new Date(0).toISOString()} endsAt={view.ends_at} offsetMs={clockOffsetMs} />
             )}
           </div>
         )}
@@ -86,7 +90,21 @@ export default function LeaderboardPage() {
           </div>
         )}
 
-        {view.kind === 'final' && <Leaderboard entries={view.entries} highlightUsername={username} />}
+        {view.kind === 'final' && (
+          <>
+            <Leaderboard entries={view.entries} highlightUsername={username} />
+            {username && (
+              <div className="mt-4 text-center">
+                <Link
+                  href={`/review/${roomCode}`}
+                  className="inline-block rounded-md bg-white px-5 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50"
+                >
+                  View your board
+                </Link>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </main>
   );
