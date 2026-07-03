@@ -88,5 +88,6 @@ export async function GET(
     starts_at: room.starts_at,
     ends_at: room.ends_at,
     synced_answers: syncedAnswers,
+    server_now: new Date().toISOString(),
   });
 }

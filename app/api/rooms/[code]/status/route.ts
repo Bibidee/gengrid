@@ -40,5 +40,7 @@ export async function GET(
     return NextResponse.json({ error: 'Room not found' }, { status: 404 });
   }
 
-  return NextResponse.json(payload);
+  // server_now sits OUTSIDE the cache so clients can compute clock-skew
+  // offsets from a fresh server timestamp on every poll.
+  return NextResponse.json({ ...payload, server_now: new Date().toISOString() });
 }

@@ -5,6 +5,13 @@ import { useEffect, useRef, useState } from 'react';
 type Props = {
   startsAt: string | null;
   endsAt: string | null;
+  /**
+   * Clock-skew correction (ms) to add to Date.now() so the countdown tracks
+   * the SERVER clock, not the (possibly wrong) device clock. Computed by the
+   * caller from the `server_now` field of API responses via
+   * computeClockOffsetMs, refreshed on each poll.
+   */
+  offsetMs?: number;
   onExpire?: () => void;
 };
 
@@ -18,17 +25,19 @@ function formatDuration(ms: number): string {
 /**
  * Purely local countdown UI — ticks every second in the browser, but the
  * only source of truth for "when does time run out" is the server's
- * starts_at/ends_at timestamps. No network calls happen here.
+ * starts_at/ends_at timestamps, read against server-corrected time.
+ * No network calls happen here.
  */
-export function Countdown({ startsAt, endsAt, onExpire }: Props) {
-  const [now, setNow] = useState(() => Date.now());
+export function Countdown({ startsAt, endsAt, offsetMs = 0, onExpire }: Props) {
+  const [localNow, setLocalNow] = useState(() => Date.now());
   const firedRef = useRef(false);
 
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
+    const id = setInterval(() => setLocalNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
 
+  const now = localNow + offsetMs;
   const isExpired = endsAt != null && now >= new Date(endsAt).getTime();
 
   useEffect(() => {

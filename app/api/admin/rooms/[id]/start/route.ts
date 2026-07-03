@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase-server';
 
-const COUNTDOWN_SECONDS = 30;
-
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -24,13 +22,17 @@ export async function POST(
     return NextResponse.json({ error: `Cannot start a room in status "${room.status}"` }, { status: 400 });
   }
 
-  const starts_at = new Date(Date.now() + COUNTDOWN_SECONDS * 1000);
+  // Immediate start: the game begins the moment the admin clicks Start.
+  // Everyone derives their countdown from these shared server timestamps,
+  // so the start is simultaneous across devices ('scheduled' is now unused,
+  // but readers stay tolerant of it).
+  const starts_at = new Date();
   const ends_at = new Date(starts_at.getTime() + room.duration_seconds * 1000);
 
   const { error } = await supabaseServer
     .from('rooms')
     .update({
-      status: 'scheduled',
+      status: 'live',
       starts_at: starts_at.toISOString(),
       ends_at: ends_at.toISOString(),
       updated_at: new Date().toISOString(),

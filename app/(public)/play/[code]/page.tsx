@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { Grid, type GridClue } from '@/components/Grid';
 import { ClueList, type PlayClue } from '@/components/ClueList';
 import { Countdown } from '@/components/Countdown';
+import { usePolling } from '@/lib/use-polling';
+import { computeClockOffsetMs } from '@/lib/clock';
 import {
   loadPlayerSession,
   saveAnswers,
@@ -24,9 +26,11 @@ type PlayPayload = {
   starts_at: string | null;
   ends_at: string | null;
   synced_answers: Record<string, string> | null;
+  server_now?: string;
 };
 
 const SYNC_INTERVAL_MS = 15_000;
+const OFFSET_REFRESH_MS = 30_000;
 
 export default function PlayPage() {
   const params = useParams<{ code: string }>();
@@ -39,6 +43,8 @@ export default function PlayPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  // server clock minus device clock; countdowns use Date.now() + offset.
+  const [clockOffsetMs, setClockOffsetMs] = useState(0);
 
   // Refs so sync/beacon handlers always see the latest state without
   // re-registering listeners on every keystroke.
@@ -63,6 +69,9 @@ export default function PlayPage() {
       try {
         const statusRes = await fetch(`/api/rooms/${roomCode}/status`);
         const status = await statusRes.json();
+        if (statusRes.ok && status.server_now) {
+          setClockOffsetMs(computeClockOffsetMs(status.server_now));
+        }
         if (!statusRes.ok || !status.puzzle_id) {
           setError('This room has no puzzle assigned yet');
           return;
@@ -77,6 +86,7 @@ export default function PlayPage() {
           return;
         }
         setPuzzle(playData);
+        if (playData.server_now) setClockOffsetMs(computeClockOffsetMs(playData.server_now));
         if (playData.clues.length > 0) setSelectedClue(playData.clues[0]);
 
         // Restore fallback: localStorage empty (new device/cleared) but the
@@ -142,6 +152,23 @@ export default function PlayPage() {
       window.removeEventListener('pagehide', beacon);
     };
   }, [roomCode]);
+
+  // Refresh the clock-skew offset periodically from the status endpoint so a
+  // drifting/wrong device clock never desyncs the visible countdown.
+  usePolling(
+    async () => {
+      try {
+        const res = await fetch(`/api/rooms/${roomCode}/status`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.server_now) setClockOffsetMs(computeClockOffsetMs(data.server_now));
+      } catch {
+        // transient network error — keep last known offset
+      }
+    },
+    OFFSET_REFRESH_MS,
+    puzzle != null
+  );
 
   const handleChange = useCallback(
     (row: number, col: number, letter: string) => {
@@ -232,7 +259,7 @@ export default function PlayPage() {
           Waiting for the round to end. Leaderboard unlocks when the timer reaches 00:00.
         </p>
         <div className="rounded-lg border border-slate-200 bg-white px-8 py-4 shadow-sm">
-          <Countdown startsAt={puzzle.starts_at} endsAt={puzzle.ends_at} onExpire={handleExpire} />
+          <Countdown startsAt={puzzle.starts_at} endsAt={puzzle.ends_at} offsetMs={clockOffsetMs} onExpire={handleExpire} />
         </div>
         <p className="text-xs text-slate-400">Room {roomCode}</p>
       </main>
@@ -250,7 +277,7 @@ export default function PlayPage() {
               {puzzle.theme ? ` · ${puzzle.theme}` : ''}
             </p>
           </div>
-          <Countdown startsAt={puzzle.starts_at} endsAt={puzzle.ends_at} onExpire={handleExpire} />
+          <Countdown startsAt={puzzle.starts_at} endsAt={puzzle.ends_at} offsetMs={clockOffsetMs} onExpire={handleExpire} />
         </div>
       </header>
 

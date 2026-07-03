@@ -32,7 +32,7 @@ export async function GET(
   if (effective !== 'finished') {
     // Not ended yet: no scores, no ranks, no player progress of any kind.
     return NextResponse.json(
-      { ended: false, status: effective, ends_at: room.ends_at },
+      { ended: false, status: effective, ends_at: room.ends_at, server_now: new Date().toISOString() },
       { status: 425 }
     );
   }
@@ -41,7 +41,7 @@ export async function GET(
 
   if (result.state === 'not_ended') {
     return NextResponse.json(
-      { ended: false, status: effective, ends_at: result.ends_at },
+      { ended: false, status: effective, ends_at: result.ends_at, server_now: new Date().toISOString() },
       { status: 425 }
     );
   }
