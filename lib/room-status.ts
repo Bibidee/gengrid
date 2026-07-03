@@ -16,7 +16,9 @@ export type RoomTimingRow = {
 export function computeRoomStatus(room: RoomTimingRow): RoomStatus {
   if (room.status === 'finished') return 'finished';
 
-  if (room.status === 'scheduled' && room.starts_at) {
+  // A stored 'live' (allowed by the DB CHECK) is treated like 'scheduled':
+  // time-based transitions always come from the server clock.
+  if ((room.status === 'scheduled' || room.status === 'live') && room.starts_at) {
     const now = Date.now();
     const startsAt = new Date(room.starts_at).getTime();
     const endsAt = room.ends_at ? new Date(room.ends_at).getTime() : Infinity;

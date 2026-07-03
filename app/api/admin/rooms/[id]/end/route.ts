@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase-server';
+import { finalizeRoom } from '@/lib/finalize';
 
+// Admin force-end: closes the room now AND runs the same idempotent
+// finalization path used by the lazy leaderboard trigger.
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -11,12 +14,20 @@ export async function POST(
 
   const { id } = await params;
 
-  const { error } = await supabaseServer
+  const { data: room, error } = await supabaseServer
     .from('rooms')
-    .update({ status: 'finished', ends_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-    .eq('id', id);
+    .select('id, status, starts_at, ends_at, puzzle_id, duration_seconds')
+    .eq('id', id)
+    .maybeSingle();
 
-  if (error) return NextResponse.json({ error: 'Failed to end room' }, { status: 500 });
+  if (error || !room) {
+    return NextResponse.json({ error: 'Room not found' }, { status: 404 });
+  }
 
-  return NextResponse.json({ ok: true });
+  try {
+    const result = await finalizeRoom(room, { force: true });
+    return NextResponse.json({ ok: true, state: result.state });
+  } catch {
+    return NextResponse.json({ error: 'Failed to end room' }, { status: 500 });
+  }
 }

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase-server';
 import { hashSessionToken } from '@/lib/session-token';
 import { computeRoomStatus } from '@/lib/room-status';
+import { redis } from '@/lib/redis';
+import { syncedAnswersKey } from '@/lib/finalize';
 
 export async function GET(
   request: Request,
@@ -68,6 +70,11 @@ export async function GET(
     return NextResponse.json({ error: 'Failed to load clues' }, { status: 500 });
   }
 
+  // The caller's OWN last server-synced answers (per-cell), used as a
+  // restore fallback when localStorage is empty (e.g. new device/browser).
+  const syncedAnswers =
+    (await redis.get<Record<string, string>>(syncedAnswersKey(player.id))) ?? null;
+
   return NextResponse.json({
     id: puzzle.id,
     title: puzzle.title,
@@ -80,5 +87,6 @@ export async function GET(
     clues,
     starts_at: room.starts_at,
     ends_at: room.ends_at,
+    synced_answers: syncedAnswers,
   });
 }

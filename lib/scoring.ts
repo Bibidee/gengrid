@@ -19,6 +19,105 @@ export type ScoreResult = {
   total_words: number;
 };
 
+export type ClueGeometry = {
+  clue_number: number;
+  direction: Direction;
+  row_start: number;
+  col_start: number;
+  answer_length: number;
+};
+
+export type FinalClue = PuzzleClue & ClueGeometry;
+
+export type FinalPlayerInput = {
+  id: string;
+  username: string;
+  /** Present when the player submitted before the round ended. */
+  submission?: {
+    score: number;
+    time_used_seconds: number;
+    submitted_at: string | null;
+  } | null;
+  /** Latest server-synced per-cell answers ("r,c" -> letter) for non-submitters. */
+  synced_cells?: Record<string, string> | null;
+};
+
+export type FinalEntry = {
+  player_id: string;
+  username: string;
+  score: number;
+  time_used_seconds: number;
+  finished_by: 'submitted' | 'timeout';
+  rank: number;
+};
+
+/**
+ * Converts a per-cell answer map ("row,col" -> letter) into per-clue words
+ * keyed "{clue_number}-{direction}", mirroring the client-side assembly.
+ */
+export function cellValuesToWords(
+  clues: ClueGeometry[],
+  cells: Record<string, string>
+): SubmittedAnswers {
+  const out: SubmittedAnswers = {};
+  for (const clue of clues) {
+    let word = '';
+    for (let i = 0; i < clue.answer_length; i++) {
+      const r = clue.direction === 'across' ? clue.row_start : clue.row_start + i;
+      const c = clue.direction === 'across' ? clue.col_start + i : clue.col_start;
+      word += cells[`${r},${c}`] ?? '';
+    }
+    out[`${clue.clue_number}-${clue.direction}`] = word;
+  }
+  return out;
+}
+
+/**
+ * Pure end-of-round leaderboard computation. Every player who joined gets
+ * exactly one row: early submitters keep their submission score; everyone
+ * else is auto-scored from their latest synced answers (or 0 if none) with
+ * the full round duration as their time.
+ */
+export function computeFinalLeaderboard(
+  clues: FinalClue[],
+  players: FinalPlayerInput[],
+  durationSeconds: number
+): FinalEntry[] {
+  const scored = players.map((p) => {
+    if (p.submission) {
+      return {
+        player_id: p.id,
+        username: p.username,
+        score: p.submission.score,
+        time_used_seconds: p.submission.time_used_seconds,
+        finished_by: 'submitted' as const,
+        submitted_at: p.submission.submitted_at,
+      };
+    }
+    const words = p.synced_cells ? cellValuesToWords(clues, p.synced_cells) : {};
+    const result = scoreSubmission(clues, words);
+    return {
+      player_id: p.id,
+      username: p.username,
+      score: result.score,
+      time_used_seconds: durationSeconds,
+      finished_by: 'timeout' as const,
+      submitted_at: null as string | null,
+    };
+  });
+
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    if (a.time_used_seconds !== b.time_used_seconds) return a.time_used_seconds - b.time_used_seconds;
+    const aSub = a.submitted_at ? new Date(a.submitted_at).getTime() : Infinity;
+    const bSub = b.submitted_at ? new Date(b.submitted_at).getTime() : Infinity;
+    if (aSub !== bSub) return aSub - bSub;
+    return a.username.localeCompare(b.username);
+  });
+
+  return scored.map(({ submitted_at: _submitted_at, ...entry }, i) => ({ ...entry, rank: i + 1 }));
+}
+
 export const POINTS_PER_LETTER = 10;
 export const WORD_BONUS = 25;
 export const COMPLETION_BONUS = 100;

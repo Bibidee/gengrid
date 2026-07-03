@@ -1,22 +1,21 @@
 import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase-server';
-import { getCached } from '@/lib/redis';
-import { hashSessionToken } from '@/lib/session-token';
+import { computeRoomStatus, type RoomStatus } from '@/lib/room-status';
+import { finalizeRoom } from '@/lib/finalize';
 
-const TOP_N = 20;
-
+// The public leaderboard reveals NOTHING until the room has ended (server
+// clock). The first poll after ends_at lazily triggers the idempotent
+// finalization, which scores every joined player exactly once.
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ code: string }> }
 ) {
   const { code } = await params;
   const room_code = code.trim().toUpperCase();
-  const url = new URL(request.url);
-  const sessionToken = url.searchParams.get('session_token');
 
   const { data: room, error: roomError } = await supabaseServer
     .from('rooms')
-    .select('id')
+    .select('id, status, starts_at, ends_at, puzzle_id, duration_seconds')
     .eq('room_code', room_code)
     .maybeSingle();
 
@@ -24,48 +23,32 @@ export async function GET(
     return NextResponse.json({ error: 'Room not found' }, { status: 404 });
   }
 
-  const top = await getCached(`leaderboard:${room.id}`, 3, async () => {
-    const { data } = await supabaseServer
-      .from('player_sessions')
-      .select('id, username, score, time_used_seconds, submitted_at')
-      .eq('room_id', room.id)
-      .eq('status', 'submitted')
-      .order('score', { ascending: false })
-      .order('time_used_seconds', { ascending: true })
-      .order('submitted_at', { ascending: true })
-      .limit(TOP_N);
-    return data ?? [];
+  const effective = computeRoomStatus({
+    status: room.status as RoomStatus,
+    starts_at: room.starts_at,
+    ends_at: room.ends_at,
   });
 
-  const response: {
-    leaderboard: typeof top;
-    caller?: { rank: number; username: string; score: number | null };
-  } = { leaderboard: top };
-
-  if (sessionToken) {
-    const tokenHash = hashSessionToken(sessionToken);
-    const { data: caller } = await supabaseServer
-      .from('player_sessions')
-      .select('id, username, score')
-      .eq('room_id', room.id)
-      .eq('session_token_hash', tokenHash)
-      .maybeSingle();
-
-    if (caller) {
-      const inTop = top.findIndex((p) => p.id === caller.id);
-      if (inTop === -1) {
-        // Compute the caller's rank among all submitted players without
-        // exposing the full player list.
-        const { count } = await supabaseServer
-          .from('player_sessions')
-          .select('id', { count: 'exact', head: true })
-          .eq('room_id', room.id)
-          .eq('status', 'submitted')
-          .gt('score', caller.score ?? -1);
-        response.caller = { rank: (count ?? 0) + 1, username: caller.username, score: caller.score };
-      }
-    }
+  if (effective !== 'finished') {
+    // Not ended yet: no scores, no ranks, no player progress of any kind.
+    return NextResponse.json(
+      { ended: false, status: effective, ends_at: room.ends_at },
+      { status: 425 }
+    );
   }
 
-  return NextResponse.json(response);
+  const result = await finalizeRoom(room);
+
+  if (result.state === 'not_ended') {
+    return NextResponse.json(
+      { ended: false, status: effective, ends_at: result.ends_at },
+      { status: 425 }
+    );
+  }
+
+  if (result.state === 'finalizing') {
+    return NextResponse.json({ ended: true, finalizing: true }, { status: 202 });
+  }
+
+  return NextResponse.json({ ended: true, finalizing: false, leaderboard: result.leaderboard });
 }
