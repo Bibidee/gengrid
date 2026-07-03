@@ -1,6 +1,6 @@
 'use client';
 
-import { useId } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 export type GridClue = {
   clue_number: number;
@@ -29,12 +29,22 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
   const instanceId = useId();
   const black = new Set(blackCells.map(([r, c]) => `${r},${c}`));
 
-  // Explicit square px sizing. iOS Safari mishandles aspect-square combined
-  // with fr-based columns (cells stretch tall), so cells get a computed px
-  // edge: fill the viewport width minus page padding, capped at 36px.
-  // border (2px*2) + gaps (1px each) are subtracted so the grid never causes
-  // page-level horizontal overflow.
-  const cellSize = `min(calc((100vw - 2rem - 4px - ${size - 1}px) / ${size}), 36px)`;
+  // Explicit square WHOLE-pixel sizing computed in JS. iOS Safari mishandles
+  // aspect-square + fr columns (cells stretch tall), and fractional CSS calc
+  // sizes make the 1px cell separators disappear at some Windows display
+  // scaling / browser zoom levels. Integer px cells + real borders (below)
+  // render reliably everywhere. 36px default matches desktop; recomputed on
+  // mount and resize to fit the viewport minus page padding.
+  const [cellPx, setCellPx] = useState(36);
+  useEffect(() => {
+    const compute = () => {
+      const avail = window.innerWidth - 32 - 4; // page padding + grid border
+      setCellPx(Math.max(18, Math.min(36, Math.floor(avail / size))));
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    return () => window.removeEventListener('resize', compute);
+  }, [size]);
 
   const isInSelectedClue = (r: number, c: number) => {
     if (!selectedClue) return false;
@@ -65,14 +75,17 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
 
   return (
     <div
-      className="inline-grid border-2 border-slate-800 bg-slate-800 gap-px select-none"
-      style={{ gridTemplateColumns: `repeat(${size}, ${cellSize})`, gridAutoRows: cellSize }}
+      className="inline-grid border-2 border-slate-800 select-none"
+      style={{ gridTemplateColumns: `repeat(${size}, ${cellPx}px)`, gridAutoRows: `${cellPx}px` }}
     >
       {Array.from({ length: size }).map((_, r) =>
         Array.from({ length: size }).map((__, c) => {
           const key = `${r},${c}`;
+          // Per-cell borders (not gaps) draw the grid lines so they survive
+          // fractional display scaling; box-sizing keeps cells square.
+          const cellBorder = `border-slate-800 ${c < size - 1 ? 'border-r' : ''} ${r < size - 1 ? 'border-b' : ''}`;
           if (black.has(key)) {
-            return <div key={key} className="bg-slate-900" />;
+            return <div key={key} className={`bg-slate-900 ${cellBorder}`} />;
           }
           const number = clueNumbers[key];
           const highlighted = isInSelectedClue(r, c);
@@ -85,7 +98,7 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
                 ? 'bg-red-100'
                 : 'bg-white';
           return (
-            <div key={key} className={`relative ${bg}`}>
+            <div key={key} className={`relative ${bg} ${cellBorder}`}>
               {number && <span className="absolute left-0.5 top-0 text-[9px] leading-none text-slate-500">{number}</span>}
               <input
                 id={cellId(r, c)}
@@ -94,9 +107,15 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
                   if (readOnly) return;
                   const v = e.target.value.replace(/[^a-zA-Z]/g, '').slice(-1).toUpperCase();
                   onChange(r, c, v);
-                  if (v) {
-                    if (selectedClue?.direction === 'down') focusCell(r + 1, c);
-                    else focusCell(r, c + 1);
+                  // Advance only within the current word; stop at its last
+                  // cell so the selection never jumps to another word on its
+                  // own — switching direction is always the player's tap.
+                  if (v && selectedClue) {
+                    if (selectedClue.direction === 'down') {
+                      if (r + 1 < selectedClue.row_start + selectedClue.answer_length) focusCell(r + 1, c);
+                    } else if (c + 1 < selectedClue.col_start + selectedClue.answer_length) {
+                      focusCell(r, c + 1);
+                    }
                   }
                 }}
                 onFocus={() => onSelectCell(r, c)}

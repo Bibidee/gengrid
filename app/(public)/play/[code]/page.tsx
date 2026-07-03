@@ -43,6 +43,7 @@ export default function PlayPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showBoard, setShowBoard] = useState(false);
   // server clock minus device clock; countdowns use Date.now() + offset.
   const [clockOffsetMs, setClockOffsetMs] = useState(0);
 
@@ -310,6 +311,30 @@ export default function PlayPage() {
         <div className="rounded-lg border border-slate-200 bg-white px-8 py-4 shadow-sm">
           <Countdown startsAt={puzzle.starts_at} endsAt={puzzle.ends_at} offsetMs={clockOffsetMs} onExpire={handleExpire} />
         </div>
+        <button
+          type="button"
+          onClick={() => setShowBoard((s) => !s)}
+          className="text-sm font-semibold text-slate-600 underline decoration-dotted hover:text-slate-900"
+        >
+          {showBoard ? 'Hide your board' : 'View your board'}
+        </button>
+        {showBoard && (
+          <div className="max-w-full overflow-x-auto">
+            {/* Locked view of the player's own answers — no grading, no
+                scores; correctness only appears post-game on the review page. */}
+            <Grid
+              size={puzzle.board_size}
+              blackCells={puzzle.black_cells}
+              clueNumbers={puzzle.clue_numbers}
+              clues={puzzle.clues}
+              values={values}
+              onChange={() => {}}
+              selectedClue={null}
+              onSelectCell={() => {}}
+              readOnly
+            />
+          </div>
+        )}
         <p className="text-xs text-slate-400">Room {roomCode}</p>
       </main>
     );
