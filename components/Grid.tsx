@@ -86,9 +86,13 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
                 onKeyDown={(e) => handleKeyDown(e, r, c)}
                 maxLength={1}
                 autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="characters"
+                spellCheck={false}
                 inputMode="text"
+                enterKeyHint="next"
                 aria-label={`Row ${r + 1}, column ${c + 1}`}
-                className="h-full w-full bg-transparent text-center text-sm font-semibold uppercase outline-none focus:bg-amber-200"
+                className="h-full w-full bg-transparent text-center text-base font-semibold uppercase outline-none focus:bg-amber-200"
               />
             </div>
           );

@@ -1,20 +1,20 @@
 'use client';
 
 export type LeaderboardEntry = {
-  id: string;
+  player_id: string;
   username: string;
-  score: number | null;
-  time_used_seconds: number | null;
-  submitted_at: string | null;
+  score: number;
+  time_used_seconds: number;
+  finished_by: 'submitted' | 'timeout';
+  rank: number;
 };
 
 type Props = {
   entries: LeaderboardEntry[];
-  caller?: { rank: number; username: string; score: number | null };
   highlightUsername?: string;
 };
 
-export function Leaderboard({ entries, caller, highlightUsername }: Props) {
+export function Leaderboard({ entries, highlightUsername }: Props) {
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200">
       <table className="w-full text-sm">
@@ -27,35 +27,35 @@ export function Leaderboard({ entries, caller, highlightUsername }: Props) {
           </tr>
         </thead>
         <tbody>
-          {entries.map((e, i) => (
+          {entries.map((e) => (
             <tr
-              key={e.id}
+              key={e.player_id}
               className={`border-t border-slate-100 ${
                 e.username === highlightUsername ? 'bg-amber-50 font-semibold' : ''
               }`}
             >
-              <td className="px-3 py-2 text-slate-500">{i + 1}</td>
-              <td className="px-3 py-2">{e.username}</td>
-              <td className="px-3 py-2 text-right">{e.score ?? '—'}</td>
-              <td className="px-3 py-2 text-right text-slate-500">
-                {e.time_used_seconds != null ? `${e.time_used_seconds}s` : '—'}
+              <td className="px-3 py-2 text-slate-500">{e.rank}</td>
+              <td className="px-3 py-2">
+                {e.username}
+                {e.finished_by === 'timeout' && (
+                  <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-400">
+                    timed out
+                  </span>
+                )}
               </td>
+              <td className="px-3 py-2 text-right">{e.score}</td>
+              <td className="px-3 py-2 text-right text-slate-500">{e.time_used_seconds}s</td>
             </tr>
           ))}
           {entries.length === 0 && (
             <tr>
               <td colSpan={4} className="px-3 py-6 text-center text-slate-400">
-                No submissions yet
+                No players in this room
               </td>
             </tr>
           )}
         </tbody>
       </table>
-      {caller && (
-        <div className="border-t border-slate-200 bg-amber-50 px-3 py-2 text-sm font-semibold">
-          You: rank #{caller.rank} — {caller.score ?? 0} pts
-        </div>
-      )}
     </div>
   );
 }

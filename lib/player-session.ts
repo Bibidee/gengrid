@@ -42,3 +42,15 @@ export function loadAnswers(roomCode: string): Record<string, string> {
     return {};
   }
 }
+
+function submittedKey(roomCode: string) {
+  return `gengrid:submitted:${roomCode.toUpperCase()}`;
+}
+
+export function markSubmitted(roomCode: string) {
+  localStorage.setItem(submittedKey(roomCode), '1');
+}
+
+export function hasSubmitted(roomCode: string): boolean {
+  return localStorage.getItem(submittedKey(roomCode)) === '1';
+}
