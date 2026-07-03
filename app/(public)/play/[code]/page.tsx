@@ -87,7 +87,13 @@ export default function PlayPage() {
         }
         setPuzzle(playData);
         if (playData.server_now) setClockOffsetMs(computeClockOffsetMs(playData.server_now));
-        if (playData.clues.length > 0) setSelectedClue(playData.clues[0]);
+        if (playData.clues.length > 0) {
+          // Start on the first across clue (payload order is not guaranteed).
+          const sorted = [...playData.clues].sort(
+            (a: PlayClue, b: PlayClue) => a.clue_number - b.clue_number
+          );
+          setSelectedClue(sorted.find((c: PlayClue) => c.direction === 'across') ?? sorted[0]);
+        }
 
         // Restore fallback: localStorage empty (new device/cleared) but the
         // server has this player's last synced answers.
@@ -168,6 +174,49 @@ export default function PlayPage() {
     },
     OFFSET_REFRESH_MS,
     puzzle != null
+  );
+
+  // Cell-tap selection with crossword conventions: re-tapping the selected
+  // cell toggles direction; moving within the current word keeps it; a fresh
+  // cell prefers the word starting there (across first), then any word
+  // passing through it. Plain array order caused crossing down words to
+  // steal the selection from across clues.
+  const lastCellRef = useRef<string | null>(null);
+  const handleSelectCell = useCallback(
+    (r: number, c: number) => {
+      if (!puzzle) return;
+      const key = `${r},${c}`;
+      const passesThrough = (cl: GridClue) =>
+        cl.direction === 'across'
+          ? cl.row_start === r && c >= cl.col_start && c < cl.col_start + cl.answer_length
+          : cl.col_start === c && r >= cl.row_start && r < cl.row_start + cl.answer_length;
+
+      const candidates = puzzle.clues.filter(passesThrough);
+      if (candidates.length === 0) return;
+
+      setSelectedClue((current) => {
+        // Re-tap on the same cell: switch to the crossing word if there is one.
+        if (lastCellRef.current === key && current && passesThrough(current)) {
+          const crossing = candidates.find((cl) => cl.direction !== current.direction);
+          lastCellRef.current = key;
+          return crossing ?? current;
+        }
+        lastCellRef.current = key;
+        // Moving within the currently selected word keeps it (so typing
+        // focus-advance never flips direction mid-word).
+        if (current && passesThrough(current)) return current;
+        const acrossStart = candidates.find(
+          (cl) => cl.direction === 'across' && cl.row_start === r && cl.col_start === c
+        );
+        const downStart = candidates.find(
+          (cl) => cl.direction === 'down' && cl.row_start === r && cl.col_start === c
+        );
+        const across = candidates.find((cl) => cl.direction === 'across');
+        const down = candidates.find((cl) => cl.direction === 'down');
+        return acrossStart ?? downStart ?? across ?? down ?? current;
+      });
+    },
+    [puzzle]
   );
 
   const handleChange = useCallback(
@@ -293,14 +342,7 @@ export default function PlayPage() {
                 values={values}
                 onChange={handleChange}
                 selectedClue={selectedClue}
-                onSelectCell={(r, c) => {
-                  const match = puzzle.clues.find(
-                    (cl) =>
-                      (cl.direction === 'across' && cl.row_start === r && c >= cl.col_start && c < cl.col_start + cl.answer_length) ||
-                      (cl.direction === 'down' && cl.col_start === c && r >= cl.row_start && r < cl.row_start + cl.answer_length)
-                  );
-                  if (match) setSelectedClue(match);
-                }}
+                onSelectCell={handleSelectCell}
               />
             </div>
 

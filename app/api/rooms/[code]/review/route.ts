@@ -6,8 +6,9 @@ import { finalizeRoom } from '@/lib/finalize';
 import { gradeSubmission, type SubmittedAnswers } from '@/lib/scoring';
 
 // Post-game board review: returns the CALLER'S OWN submitted answers only,
-// and only after the room has finished. Never other players' answers and
-// never correct answers — per-clue booleans are the only grading exposed.
+// and only after the room has finished. Never other players' answers.
+// Correct answers are revealed ONLY here, ONLY for clues the caller got
+// wrong — a deliberate post-game exception; live rooms never leak answers.
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ code: string }> }
@@ -74,20 +75,29 @@ export async function GET(
     (submission?.submitted_answers as SubmittedAnswers | null) ?? {};
 
   // Per-clue correct/incorrect booleans (server-side read of correct_answer
-  // stays inside lib/scoring.ts; only booleans leave this route).
+  // stays inside lib/scoring.ts). The room is finished (checked above), so
+  // the correct word is also revealed — but only for WRONG clues.
   let grading: Record<string, boolean> = {};
+  const corrections: Record<string, string> = {};
   if (room.puzzle_id) {
     const { data: clues } = await supabaseServer
       .from('puzzle_clues')
       .select('clue_number, direction, correct_answer')
       .eq('puzzle_id', room.puzzle_id);
     grading = gradeSubmission(clues ?? [], submitted);
+    for (const clue of clues ?? []) {
+      const key = `${clue.clue_number}-${clue.direction}`;
+      if (grading[key] === false) {
+        corrections[key] = String(clue.correct_answer).trim().toUpperCase();
+      }
+    }
   }
 
   return NextResponse.json({
     username: player.username,
     submitted_answers: submitted,
     grading,
+    corrections,
     score: submission?.score ?? 0,
     correct_words: submission?.correct_words ?? null,
     total_words: submission?.total_words ?? null,

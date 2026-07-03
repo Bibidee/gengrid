@@ -21,9 +21,11 @@ type Props = {
   onSelectCell: (row: number, col: number) => void;
   /** Post-game review: render values without accepting edits. */
   readOnly?: boolean;
+  /** Post-game review: faint per-cell correctness tint ("row,col" keys). */
+  cellShading?: Record<string, 'correct' | 'wrong'>;
 };
 
-export function Grid({ size, blackCells, clueNumbers, values, onChange, selectedClue, onSelectCell, readOnly = false }: Props) {
+export function Grid({ size, blackCells, clueNumbers, values, onChange, selectedClue, onSelectCell, readOnly = false, cellShading }: Props) {
   const instanceId = useId();
   const black = new Set(blackCells.map(([r, c]) => `${r},${c}`));
 
@@ -74,11 +76,16 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
           }
           const number = clueNumbers[key];
           const highlighted = isInSelectedClue(r, c);
+          const shade = cellShading?.[key];
+          const bg = highlighted
+            ? 'bg-amber-100'
+            : shade === 'correct'
+              ? 'bg-green-100'
+              : shade === 'wrong'
+                ? 'bg-red-100'
+                : 'bg-white';
           return (
-            <div
-              key={key}
-              className={`relative ${highlighted ? 'bg-amber-100' : 'bg-white'}`}
-            >
+            <div key={key} className={`relative ${bg}`}>
               {number && <span className="absolute left-0.5 top-0 text-[9px] leading-none text-slate-500">{number}</span>}
               <input
                 id={cellId(r, c)}
@@ -93,6 +100,11 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
                   }
                 }}
                 onFocus={() => onSelectCell(r, c)}
+                // onFocus doesn't refire when tapping the already-focused
+                // cell, so re-taps (direction toggle) go through pointerdown.
+                onPointerDown={() => {
+                  if (document.activeElement?.id === cellId(r, c)) onSelectCell(r, c);
+                }}
                 onKeyDown={(e) => handleKeyDown(e, r, c)}
                 readOnly={readOnly}
                 maxLength={1}

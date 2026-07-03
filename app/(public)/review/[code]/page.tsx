@@ -21,6 +21,7 @@ type ReviewPayload = {
   username: string;
   submitted_answers: Record<string, string>; // "{n}-{direction}" -> word
   grading: Record<string, boolean>;
+  corrections: Record<string, string>; // correct word for WRONG clues only
   score: number;
   correct_words: number | null;
   total_words: number | null;
@@ -96,6 +97,39 @@ export default function ReviewPage() {
     return out;
   }, [layout, review]);
 
+  // Faint correctness tint per cell: green if the letter belongs to at least
+  // one fully-correct word (green wins at crossings), red if it only belongs
+  // to wrong words.
+  const cellShading = useMemo(() => {
+    if (!layout || !review) return {};
+    const out: Record<string, 'correct' | 'wrong'> = {};
+    const passes: Array<'wrong' | 'correct'> = ['wrong', 'correct'];
+    for (const want of passes) {
+      for (const clue of layout.clues) {
+        const grade = review.grading[`${clue.clue_number}-${clue.direction}`];
+        if ((grade === true ? 'correct' : 'wrong') !== want) continue;
+        for (let i = 0; i < clue.answer_length; i++) {
+          const r = clue.direction === 'across' ? clue.row_start : clue.row_start + i;
+          const c = clue.direction === 'across' ? clue.col_start + i : clue.col_start;
+          out[`${r},${c}`] = want;
+        }
+      }
+    }
+    return out;
+  }, [layout, review]);
+
+  // Tapping a word on the read-only grid jumps to its clue (across preferred
+  // at crossings; ClueList follows the selection and switches tab on mobile).
+  const handleSelectCell = (r: number, c: number) => {
+    if (!layout) return;
+    const match = layout.clues.find(
+      (cl) =>
+        (cl.direction === 'across' && cl.row_start === r && c >= cl.col_start && c < cl.col_start + cl.answer_length) ||
+        (cl.direction === 'down' && cl.col_start === c && r >= cl.row_start && r < cl.row_start + cl.answer_length)
+    );
+    if (match) setSelectedClue(match);
+  };
+
   if (error) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-6 text-center">
@@ -150,8 +184,9 @@ export default function ReviewPage() {
               values={cellValues}
               onChange={() => {}}
               selectedClue={selectedClue}
-              onSelectCell={() => {}}
+              onSelectCell={handleSelectCell}
               readOnly
+              cellShading={cellShading}
             />
             <p className="mt-2 text-xs text-slate-400">
               Read-only view of the answers you submitted.
@@ -163,6 +198,9 @@ export default function ReviewPage() {
               selectedClue={selectedClue}
               onSelect={setSelectedClue}
               grading={review.grading}
+              corrections={review.corrections}
+              submittedWords={review.submitted_answers}
+              followSelection
             />
           </div>
         </div>
