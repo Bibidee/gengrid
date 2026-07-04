@@ -19,6 +19,16 @@ type Submission = {
   player_sessions: { username: string } | { username: string }[] | null;
 };
 
+const TROPHIES: Record<number, { icon: string; color: string }> = {
+  1: { icon: '🥇', color: 'text-amber-500' },
+  2: { icon: '🥈', color: 'text-slate-400' },
+  3: { icon: '🥉', color: 'text-orange-700' },
+};
+
+function usernameOf(s: Submission) {
+  return (Array.isArray(s.player_sessions) ? s.player_sessions[0]?.username : s.player_sessions?.username) ?? '—';
+}
+
 export default function RoomSubmissionsPage() {
   const { loading: authLoading } = useAdminSession();
   const params = useParams<{ id: string }>();
@@ -35,13 +45,52 @@ export default function RoomSubmissionsPage() {
     })();
   }, [authLoading, params.id]);
 
+  function exportCsv() {
+    const esc = (v: string | number) => {
+      const s = String(v);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const rows = [
+      ['rank', 'player', 'score', 'correct_words', 'total_words', 'correct_letters', 'total_letters', 'time_used_seconds', 'submitted_at'],
+      ...submissions.map((s, i) => [
+        i + 1,
+        usernameOf(s),
+        s.score,
+        s.correct_words,
+        s.total_words,
+        s.correct_letters,
+        s.total_letters,
+        s.time_used_seconds,
+        s.submitted_at,
+      ]),
+    ];
+    const csv = rows.map((r) => r.map(esc).join(',')).join('\r\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `gengrid-leaderboard-${params.id}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   if (authLoading) return null;
 
   return (
     <div className="min-h-screen bg-slate-50">
       <AdminNav />
       <main className="mx-auto max-w-4xl px-6 py-10">
-        <h1 className="mb-6 text-2xl font-bold text-slate-900">Leaderboard</h1>
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-slate-900">Leaderboard</h1>
+          <button
+            type="button"
+            onClick={exportCsv}
+            disabled={submissions.length === 0}
+            className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50 disabled:opacity-40"
+          >
+            Export CSV
+          </button>
+        </div>
 
         {loading ? (
           <p className="text-slate-400">Loading…</p>
@@ -60,13 +109,14 @@ export default function RoomSubmissionsPage() {
               </thead>
               <tbody>
                 {submissions.map((s, i) => {
-                  const username = Array.isArray(s.player_sessions)
-                    ? s.player_sessions[0]?.username
-                    : s.player_sessions?.username;
+                  const trophy = TROPHIES[i + 1];
                   return (
                     <tr key={s.id} className="border-t border-slate-100">
-                      <td className="px-4 py-2 font-semibold text-slate-400">{i + 1}</td>
-                      <td className="px-4 py-2">{username ?? '—'}</td>
+                      <td className={`px-4 py-2 font-semibold ${trophy?.color ?? 'text-slate-400'}`}>
+                        {trophy ? `${trophy.icon} ` : ''}
+                        {i + 1}
+                      </td>
+                      <td className="px-4 py-2">{usernameOf(s)}</td>
                       <td className="px-4 py-2 text-right font-semibold">{s.score}</td>
                       <td className="px-4 py-2 text-right text-slate-500">
                         {s.correct_words}/{s.total_words}
