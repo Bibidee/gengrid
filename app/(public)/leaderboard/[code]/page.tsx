@@ -64,18 +64,22 @@ export default function LeaderboardPage() {
   );
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10">
+    <main className="min-h-screen px-4 py-12">
       <div className="mx-auto max-w-xl">
-        <h1 className="mb-1 text-2xl font-bold text-slate-900">Leaderboard</h1>
-        <p className="mb-6 text-sm text-slate-500">Room {roomCode}</p>
+        <div className="mb-8 text-center">
+          <div className="kicker mb-2">Arena · {roomCode}</div>
+          <h1 className="font-sg text-3xl font-semibold tracking-tight text-[#F8FAFC]">Final Standings</h1>
+        </div>
 
-        {view.kind === 'loading' && <p className="text-slate-500">Loading…</p>}
+        {view.kind === 'loading' && (
+          <p className="font-arena-mono text-center text-sm text-[#9CA3B8]">Loading…</p>
+        )}
 
-        {view.kind === 'error' && <p className="text-red-600">{view.message}</p>}
+        {view.kind === 'error' && <p className="text-center text-[#FF6B81]">{view.message}</p>}
 
         {view.kind === 'not_ended' && (
-          <div className="flex flex-col items-center gap-4 rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
-            <p className="text-slate-600">
+          <div className="glass-card flex flex-col items-center gap-4 px-6 py-10 text-center">
+            <p className="font-light text-[#9CA3B8]">
               The round is still in progress. The leaderboard unlocks when the timer reaches 00:00.
             </p>
             {view.ends_at && (
@@ -85,20 +89,42 @@ export default function LeaderboardPage() {
         )}
 
         {view.kind === 'finalizing' && (
-          <div className="rounded-lg border border-slate-200 bg-white px-6 py-10 text-center text-slate-600 shadow-sm">
+          <div className="glass-card px-6 py-10 text-center font-light text-[#9CA3B8]">
             Calculating final results…
           </div>
         )}
 
         {view.kind === 'final' && (
           <>
+            {view.entries.length >= 3 && (
+              <div className="mb-6 flex items-end justify-center gap-3">
+                {[view.entries[1], view.entries[0], view.entries[2]].map((e, i) => {
+                  const cls = i === 1 ? 'pc-1 pb-7' : i === 0 ? 'pc-2' : 'pc-3';
+                  const medal = i === 1 ? '🥇' : i === 0 ? '🥈' : '🥉';
+                  const scoreColor = i === 1 ? 'text-[#F6C453]' : i === 0 ? 'text-[#C0C7D1]' : 'text-[#C08A5A]';
+                  const label = i === 1 ? 'Champion' : i === 0 ? '2nd Place' : '3rd Place';
+                  return (
+                    <div key={e.player_id} className={`podium-card ${cls} max-w-[160px] flex-1 px-3 py-5 text-center`}>
+                      <div className="mb-1.5 text-3xl">{medal}</div>
+                      <div className="font-arena-mono mb-1 text-[0.58rem] uppercase tracking-[0.14em] text-[#64607A]">
+                        {label}
+                      </div>
+                      <div className="font-sg mb-1 truncate text-base font-semibold text-[#F8FAFC]">{e.username}</div>
+                      <div className={`font-arena-mono text-xl font-medium ${scoreColor}`}>{e.score}</div>
+                      {e.correct_words != null && e.total_words != null && (
+                        <div className="mt-1 text-[0.7rem] text-[#64607A]">
+                          {e.correct_words}/{e.total_words} words
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
             <Leaderboard entries={view.entries} highlightUsername={username} />
             {username && (
-              <div className="mt-4 text-center">
-                <Link
-                  href={`/review/${roomCode}`}
-                  className="inline-block rounded-md bg-white px-5 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50"
-                >
+              <div className="mt-6 text-center">
+                <Link href={`/review/${roomCode}`} className="btn-arena-ghost inline-block px-6 py-2.5 text-sm no-underline">
                   View your board
                 </Link>
               </div>

@@ -7,6 +7,7 @@ import { ClueList, type PlayClue } from '@/components/ClueList';
 import { Countdown } from '@/components/Countdown';
 import { usePolling } from '@/lib/use-polling';
 import { computeClockOffsetMs } from '@/lib/clock';
+import { tickSound, goSound, clickSound, chordSound } from '@/lib/sound';
 import {
   loadPlayerSession,
   saveAnswers,
@@ -44,6 +45,9 @@ export default function PlayPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showBoard, setShowBoard] = useState(false);
+  // Cosmetic 3-2-1-GO overlay shown only when the player arrives within ~5s
+  // of the round's server-authoritative start. Never affects timing.
+  const [overlayText, setOverlayText] = useState<string | null>(null);
   // server clock minus device clock; countdowns use Date.now() + offset.
   const [clockOffsetMs, setClockOffsetMs] = useState(0);
 
@@ -87,7 +91,37 @@ export default function PlayPage() {
           return;
         }
         setPuzzle(playData);
+        const offset = playData.server_now
+          ? computeClockOffsetMs(playData.server_now)
+          : status.server_now
+            ? computeClockOffsetMs(status.server_now)
+            : 0;
         if (playData.server_now) setClockOffsetMs(computeClockOffsetMs(playData.server_now));
+
+        // 3-2-1-GO reveal (client-side only): fires only for players who
+        // land here within ~5s of the skew-corrected start; rejoiners
+        // mid-round skip it. The round timer keeps running underneath.
+        if (playData.starts_at && !hasSubmitted(roomCode)) {
+          const sinceStart = Date.now() + offset - new Date(playData.starts_at).getTime();
+          // Window covers lobby poll interval + status cache TTL so everyone
+          // arriving off the redirect gets the sequence; later rejoins skip it.
+          if (sinceStart >= -1000 && sinceStart < 8000) {
+            const steps: Array<[string, number]> = [
+              ['3', 0],
+              ['2', 900],
+              ['1', 1800],
+              ['GO', 2700],
+            ];
+            for (const [label, delay] of steps) {
+              setTimeout(() => {
+                setOverlayText(label);
+                if (label === 'GO') goSound();
+                else tickSound();
+              }, delay);
+            }
+            setTimeout(() => setOverlayText(null), 3500);
+          }
+        }
         if (playData.clues.length > 0) {
           // Start on the first across clue (payload order is not guaranteed).
           const sorted = [...playData.clues].sort(
@@ -187,6 +221,7 @@ export default function PlayPage() {
     (r: number, c: number) => {
       if (!puzzle) return;
       const key = `${r},${c}`;
+      clickSound();
       const passesThrough = (cl: GridClue) =>
         cl.direction === 'across'
           ? cl.row_start === r && c >= cl.col_start && c < cl.col_start + cl.answer_length
@@ -270,6 +305,7 @@ export default function PlayPage() {
         keepalive: true,
       });
     } finally {
+      chordSound();
       setSubmitted(true);
       markSubmitted(roomCode);
       setSubmitting(false);
@@ -287,39 +323,42 @@ export default function PlayPage() {
 
   if (error) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6 text-center">
-        <p className="text-red-600">{error}</p>
+      <main className="flex min-h-screen items-center justify-center px-6 text-center">
+        <p className="text-[#FF6B81]">{error}</p>
       </main>
     );
   }
 
   if (!puzzle) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-slate-500">Loading puzzle…</p>
+      <main className="flex min-h-screen items-center justify-center">
+        <p className="font-arena-mono text-sm text-[#9CA3B8]">Loading puzzle…</p>
       </main>
     );
   }
 
   if (submitted) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-slate-50 px-6 text-center">
-        <h1 className="text-2xl font-bold text-slate-900">You submitted your crossword.</h1>
-        <p className="max-w-sm text-slate-600">
+      <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-6 py-10 text-center">
+        <div className="kicker">Answers Locked</div>
+        <h1 className="font-sg text-2xl font-semibold tracking-tight text-[#F8FAFC]">
+          You submitted your crossword.
+        </h1>
+        <p className="max-w-sm font-light text-[#9CA3B8]">
           Waiting for the round to end. Leaderboard unlocks when the timer reaches 00:00.
         </p>
-        <div className="rounded-lg border border-slate-200 bg-white px-8 py-4 shadow-sm">
+        <div className="glass-card px-8 py-4">
           <Countdown startsAt={puzzle.starts_at} endsAt={puzzle.ends_at} offsetMs={clockOffsetMs} onExpire={handleExpire} />
         </div>
         <button
           type="button"
           onClick={() => setShowBoard((s) => !s)}
-          className="text-sm font-semibold text-slate-600 underline decoration-dotted hover:text-slate-900"
+          className="text-sm font-semibold text-[#9CA3B8] underline decoration-dotted hover:text-[#F8FAFC]"
         >
           {showBoard ? 'Hide your board' : 'View your board'}
         </button>
         {showBoard && (
-          <div className="max-w-full overflow-x-auto">
+          <div className="cw-glass-frame max-w-full overflow-x-auto">
             {/* Locked view of the player's own answers — no grading, no
                 scores; correctness only appears post-game on the review page. */}
             <Grid
@@ -335,30 +374,37 @@ export default function PlayPage() {
             />
           </div>
         )}
-        <p className="text-xs text-slate-400">Room {roomCode}</p>
+        <p className="font-arena-mono text-xs text-[#64607A]">Room {roomCode}</p>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-24 sm:pb-8">
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 px-4 py-2 backdrop-blur">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-2">
+    <main className="min-h-screen pb-24 sm:pb-8">
+      {overlayText && (
+        <div className="cd-overlay">
+          <div key={overlayText} className={`cd-num${overlayText === 'GO' ? ' go' : ''}`}>
+            {overlayText}
+          </div>
+        </div>
+      )}
+      <header className="sticky top-0 z-20 border-b border-[rgba(255,255,255,0.08)] bg-[rgba(11,9,20,0.85)] px-4 py-2 backdrop-blur-md">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 pr-12">
           <div className="min-w-0">
-            <h1 className="truncate text-base font-bold text-slate-900 sm:text-xl">{puzzle.title}</h1>
-            <p className="text-xs text-slate-500">
-              Room <span className="font-mono font-semibold">{roomCode}</span>
+            <h1 className="font-sg truncate text-base font-semibold text-[#F8FAFC] sm:text-xl">{puzzle.title}</h1>
+            <p className="font-arena-mono text-[11px] text-[#8E87A8]">
+              Room <span className="font-semibold text-[#6EE7F9]">{roomCode}</span>
               {puzzle.theme ? ` · ${puzzle.theme}` : ''}
             </p>
           </div>
-          <Countdown startsAt={puzzle.starts_at} endsAt={puzzle.ends_at} offsetMs={clockOffsetMs} onExpire={handleExpire} />
+          <Countdown startsAt={puzzle.starts_at} endsAt={puzzle.ends_at} offsetMs={clockOffsetMs} onExpire={handleExpire} ring />
         </div>
       </header>
 
       <div className="mx-auto flex max-w-4xl flex-col gap-4 px-4 py-4 sm:gap-6 sm:py-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
           <div className="min-w-0">
-            <div className="max-w-full overflow-x-auto pb-1">
+            <div className="cw-glass-frame max-w-full overflow-x-auto">
               <Grid
                 size={puzzle.board_size}
                 blackCells={puzzle.black_cells}
@@ -372,8 +418,8 @@ export default function PlayPage() {
             </div>
 
             {selectedClue && (
-              <div className="mt-2 rounded-md bg-amber-100 px-3 py-2 text-sm text-slate-800">
-                <span className="mr-1 font-mono text-xs font-bold text-slate-500">
+              <div className="mt-3 rounded-xl border border-[rgba(139,124,255,0.28)] bg-[rgba(139,124,255,0.14)] px-3 py-2 text-sm text-[#F8FAFC]">
+                <span className="font-arena-mono mr-1 text-xs font-bold text-[#A79BFF]">
                   {selectedClue.clue_number}
                   {selectedClue.direction === 'across' ? 'A' : 'D'}.
                 </span>
@@ -393,7 +439,7 @@ export default function PlayPage() {
           type="button"
           onClick={handleSubmit}
           disabled={submitting}
-          className="hidden self-start rounded-md bg-slate-900 px-6 py-2 font-semibold text-white transition hover:bg-slate-700 disabled:opacity-50 sm:block"
+          className="btn-arena-primary hidden self-start px-7 py-2.5 sm:block"
         >
           {submitting ? 'Submitting…' : 'Submit answers'}
         </button>
@@ -401,12 +447,12 @@ export default function PlayPage() {
 
       {/* Always-accessible submit on small screens; sits below content so it
           never covers the grid. */}
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[rgba(255,255,255,0.08)] bg-[rgba(11,9,20,0.9)] px-4 py-3 backdrop-blur-md sm:hidden">
         <button
           type="button"
           onClick={handleSubmit}
           disabled={submitting}
-          className="w-full rounded-md bg-slate-900 px-6 py-3 font-semibold text-white transition disabled:opacity-50"
+          className="btn-arena-primary w-full px-6 py-3"
         >
           {submitting ? 'Submitting…' : 'Submit answers'}
         </button>

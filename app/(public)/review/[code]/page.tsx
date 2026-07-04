@@ -132,9 +132,9 @@ export default function ReviewPage() {
 
   if (error) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-6 text-center">
-        <p className="text-red-600">{error}</p>
-        <Link href={`/leaderboard/${roomCode}`} className="text-sm text-slate-600 underline">
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+        <p className="text-[#FF6B81]">{error}</p>
+        <Link href={`/leaderboard/${roomCode}`} className="text-sm text-[#9CA3B8] underline">
           Back to leaderboard
         </Link>
       </main>
@@ -143,22 +143,22 @@ export default function ReviewPage() {
 
   if (!layout || !review) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-slate-500">Loading your board…</p>
+      <main className="flex min-h-screen items-center justify-center">
+        <p className="font-arena-mono text-sm text-[#9CA3B8]">Loading your board…</p>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-8">
-      <header className="border-b border-slate-200 bg-white px-4 py-3">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-2">
+    <main className="min-h-screen pb-8">
+      <header className="border-b border-[rgba(255,255,255,0.08)] bg-[rgba(11,9,20,0.85)] px-4 py-3 backdrop-blur-md">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 pr-12">
           <div className="min-w-0">
-            <h1 className="truncate text-base font-bold text-slate-900 sm:text-xl">
+            <h1 className="font-sg truncate text-base font-semibold text-[#F8FAFC] sm:text-xl">
               Your board — {layout.title}
             </h1>
-            <p className="text-xs text-slate-500">
-              {review.username} · Room <span className="font-mono font-semibold">{roomCode}</span>
+            <p className="font-arena-mono text-[11px] text-[#8E87A8]">
+              {review.username} · Room <span className="font-semibold text-[#6EE7F9]">{roomCode}</span>
               {review.correct_words != null && review.total_words != null
                 ? ` · ${review.correct_words}/${review.total_words} words correct · ${review.score} pts`
                 : ` · ${review.score} pts`}
@@ -166,7 +166,7 @@ export default function ReviewPage() {
           </div>
           <Link
             href={`/leaderboard/${roomCode}`}
-            className="shrink-0 rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50"
+            className="btn-arena-ghost shrink-0 px-3 py-1.5 text-xs no-underline"
           >
             Leaderboard
           </Link>
@@ -176,7 +176,8 @@ export default function ReviewPage() {
       <div className="mx-auto flex max-w-4xl flex-col gap-4 px-4 py-4 sm:gap-6 sm:py-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
           <div className="min-w-0">
-            <Grid
+            <div className="cw-glass-frame max-w-full overflow-x-auto">
+              <Grid
               size={layout.board_size}
               blackCells={layout.black_cells}
               clueNumbers={layout.clue_numbers}
@@ -187,8 +188,9 @@ export default function ReviewPage() {
               onSelectCell={handleSelectCell}
               readOnly
               cellShading={cellShading}
-            />
-            <p className="mt-2 text-xs text-slate-400">
+              />
+            </div>
+            <p className="mt-2 text-xs text-[#64607A]">
               Read-only view of the answers you submitted.
             </p>
           </div>

@@ -26,6 +26,15 @@ export async function GET(
       .select('id', { count: 'exact', head: true })
       .eq('room_id', room.id);
 
+    // Latest usernames for the lobby's live-joiners display. Usernames are
+    // public within a room — no tokens or ids leave the server here.
+    const { data: recent } = await supabaseServer
+      .from('player_sessions')
+      .select('username, joined_at')
+      .eq('room_id', room.id)
+      .order('joined_at', { ascending: false })
+      .limit(12);
+
     return {
       status: computeRoomStatus(room),
       room_name: room.room_name,
@@ -33,6 +42,7 @@ export async function GET(
       starts_at: room.starts_at,
       ends_at: room.ends_at,
       puzzle_id: room.puzzle_id,
+      recent_players: (recent ?? []).map((p) => p.username),
     };
   });
 

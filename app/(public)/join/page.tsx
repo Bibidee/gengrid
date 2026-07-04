@@ -45,31 +45,16 @@ export default function JoinPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm space-y-4 rounded-xl border border-slate-200 bg-white p-8 shadow-sm"
-      >
-        <h1 className="text-2xl font-bold text-slate-900">Join a game</h1>
+    <main className="flex min-h-screen items-center justify-center px-6">
+      <form onSubmit={handleSubmit} className="glass-card w-full max-w-md px-8 py-10 text-center sm:px-12">
+        <h1 className="font-sg text-2xl font-semibold tracking-tight text-[#F8FAFC]">Join a Match</h1>
+        <p className="mb-9 mt-2 text-sm font-light text-[#9CA3B8]">
+          Enter your arena code and competitor name.
+        </p>
 
-        <div>
-          <label htmlFor="username" className="mb-1 block text-sm font-medium text-slate-700">
-            Username
-          </label>
-          <input
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            maxLength={20}
-            required
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-            placeholder="e.g. validator42"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="roomCode" className="mb-1 block text-sm font-medium text-slate-700">
-            Room code
+        <div className="mb-5 text-left">
+          <label htmlFor="roomCode" className="input-lbl">
+            Arena Code
           </label>
           <input
             id="roomCode"
@@ -77,19 +62,34 @@ export default function JoinPage() {
             onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
             maxLength={7}
             required
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm uppercase tracking-widest outline-none focus:border-slate-500"
-            placeholder="e.g. AB3CDE"
+            className="arena-input uppercase tracking-[0.07em]"
+            placeholder="AB3CDE"
           />
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        <div className="text-left">
+          <label htmlFor="username" className="input-lbl">
+            Competitor Name
+          </label>
+          <input
+            id="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            maxLength={20}
+            required
+            className="arena-input"
+            placeholder="Your name"
+          />
+        </div>
+
+        {error && <p className="mt-4 text-sm text-[#FF6B81]">{error}</p>}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-slate-900 px-4 py-2 font-semibold text-white transition hover:bg-slate-700 disabled:opacity-50"
+          className="btn-arena-primary mt-8 w-full px-8 py-3.5 text-base"
         >
-          {loading ? 'Joining…' : 'Join'}
+          {loading ? 'Joining…' : 'Enter Arena →'}
         </button>
       </form>
     </main>
