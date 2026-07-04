@@ -13,6 +13,8 @@ type Props = {
    */
   offsetMs?: number;
   onExpire?: () => void;
+  /** Render as a circular HUD ring (arena play header). */
+  ring?: boolean;
 };
 
 function formatDuration(ms: number): string {
@@ -28,7 +30,7 @@ function formatDuration(ms: number): string {
  * starts_at/ends_at timestamps, read against server-corrected time.
  * No network calls happen here.
  */
-export function Countdown({ startsAt, endsAt, offsetMs = 0, onExpire }: Props) {
+export function Countdown({ startsAt, endsAt, offsetMs = 0, onExpire, ring = false }: Props) {
   const [localNow, setLocalNow] = useState(() => Date.now());
   const firedRef = useRef(false);
 
@@ -54,7 +56,7 @@ export function Countdown({ startsAt, endsAt, offsetMs = 0, onExpire }: Props) {
 
   if (now < startsAtMs) {
     return (
-      <div className="text-lg font-mono font-semibold text-slate-700">
+      <div className="font-arena-mono text-lg font-semibold text-[#9CA3B8]">
         Starting in {formatDuration(startsAtMs - now)}
       </div>
     );
@@ -63,8 +65,43 @@ export function Countdown({ startsAt, endsAt, offsetMs = 0, onExpire }: Props) {
   const remaining = endsAtMs - now;
   const urgent = remaining < 30_000;
 
+  if (ring) {
+    const total = Math.max(1, endsAtMs - startsAtMs);
+    const pct = Math.max(0, Math.min(1, remaining / total));
+    const CIRC = 169.6; // 2πr, r=27
+    const stroke = pct > 0.5 ? 'url(#gg-tg)' : pct > 0.25 ? '#F6C453' : '#FF6B81';
+    return (
+      <div className="relative h-16 w-16 shrink-0">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(139,124,255,0.12)" strokeWidth="4" />
+          <circle
+            cx="32"
+            cy="32"
+            r="27"
+            fill="none"
+            stroke={stroke}
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeDasharray={CIRC}
+            strokeDashoffset={CIRC * (1 - pct)}
+            transform="rotate(-90 32 32)"
+          />
+          <defs>
+            <linearGradient id="gg-tg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#8B7CFF" />
+              <stop offset="100%" stopColor="#6EE7F9" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <div className="font-arena-mono absolute inset-0 flex items-center justify-center text-sm text-[#F8FAFC]">
+          {remaining > 0 ? formatDuration(remaining) : '0:00'}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`text-lg font-mono font-semibold ${urgent ? 'text-red-600' : 'text-slate-700'}`}>
+    <div className={`font-arena-mono text-lg font-semibold ${urgent ? 'text-[#FF6B81]' : 'text-[#F8FAFC]'}`}>
       {remaining > 0 ? formatDuration(remaining) : "Time's up"}
     </div>
   );

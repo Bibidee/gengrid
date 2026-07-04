@@ -38,7 +38,8 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
   const [cellPx, setCellPx] = useState(36);
   useEffect(() => {
     const compute = () => {
-      const avail = window.innerWidth - 32 - 4; // page padding + grid border
+      // page padding + grid border + glass frame padding (arena theme)
+      const avail = window.innerWidth - 32 - 4 - 24;
       setCellPx(Math.max(18, Math.min(36, Math.floor(avail / size))));
     };
     compute();
@@ -75,7 +76,7 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
 
   return (
     <div
-      className="inline-grid border-2 border-slate-800 select-none"
+      className="inline-grid select-none border-2 border-[#3A3357]"
       style={{ gridTemplateColumns: `repeat(${size}, ${cellPx}px)`, gridAutoRows: `${cellPx}px` }}
     >
       {Array.from({ length: size }).map((_, r) =>
@@ -83,23 +84,26 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
           const key = `${r},${c}`;
           // Per-cell borders (not gaps) draw the grid lines so they survive
           // fractional display scaling; box-sizing keeps cells square.
-          const cellBorder = `border-slate-800 ${c < size - 1 ? 'border-r' : ''} ${r < size - 1 ? 'border-b' : ''}`;
+          const cellBorder = `border-[#3A3357] ${c < size - 1 ? 'border-r' : ''} ${r < size - 1 ? 'border-b' : ''}`;
           if (black.has(key)) {
-            return <div key={key} className={`bg-slate-900 ${cellBorder}`} />;
+            return <div key={key} className={`bg-[#050308] ${cellBorder}`} />;
           }
           const number = clueNumbers[key];
           const highlighted = isInSelectedClue(r, c);
           const shade = cellShading?.[key];
+          // Explicit dark-theme colors (never rely on prefers-color-scheme):
+          // dark glass cells, purple word highlight, faint green/red review
+          // tints that stay visible on the dark background.
           const bg = highlighted
-            ? 'bg-amber-100'
+            ? 'bg-[#3E3670]'
             : shade === 'correct'
-              ? 'bg-green-100'
+              ? 'bg-[#16371F]'
               : shade === 'wrong'
-                ? 'bg-red-100'
-                : 'bg-white';
+                ? 'bg-[#3F1F27]'
+                : 'bg-[#191426]';
           return (
             <div key={key} className={`relative ${bg} ${cellBorder}`}>
-              {number && <span className="absolute left-0.5 top-0 text-[9px] leading-none text-slate-500">{number}</span>}
+              {number && <span className="absolute left-0.5 top-0 z-10 text-[9px] leading-none text-[#8E87A8]">{number}</span>}
               <input
                 id={cellId(r, c)}
                 value={values[key] ?? ''}
@@ -107,14 +111,21 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
                   if (readOnly) return;
                   const v = e.target.value.replace(/[^a-zA-Z]/g, '').slice(-1).toUpperCase();
                   onChange(r, c, v);
-                  // Advance only within the current word; stop at its last
-                  // cell so the selection never jumps to another word on its
-                  // own — switching direction is always the player's tap.
+                  // Advance only within the current word; skip over cells
+                  // that already hold a letter (crossings filled earlier)
+                  // and stop at the word end so the selection never jumps
+                  // to another word on its own — switching direction is
+                  // always the player's tap.
                   if (v && selectedClue) {
-                    if (selectedClue.direction === 'down') {
-                      if (r + 1 < selectedClue.row_start + selectedClue.answer_length) focusCell(r + 1, c);
-                    } else if (c + 1 < selectedClue.col_start + selectedClue.answer_length) {
-                      focusCell(r, c + 1);
+                    const { direction, row_start, col_start, answer_length } = selectedClue;
+                    const idx = direction === 'across' ? c - col_start : r - row_start;
+                    for (let i = idx + 1; i < answer_length; i++) {
+                      const nr = direction === 'across' ? r : row_start + i;
+                      const nc = direction === 'across' ? col_start + i : c;
+                      if (!values[`${nr},${nc}`]) {
+                        focusCell(nr, nc);
+                        break;
+                      }
                     }
                   }
                 }}
@@ -134,7 +145,7 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
                 inputMode="text"
                 enterKeyHint="next"
                 aria-label={`Row ${r + 1}, column ${c + 1}`}
-                className={`h-full w-full bg-transparent text-center font-semibold uppercase outline-none ${readOnly ? '' : 'focus:bg-amber-200'}`}
+                className={`font-sg h-full w-full bg-transparent text-center font-semibold uppercase text-[#F8FAFC] outline-none caret-[#6EE7F9] ${readOnly ? '' : 'focus:bg-[#8B7CFF] focus:text-[#0B0914]'}`}
                 // font-size >= 16px prevents iOS Safari auto-zoom on focus;
                 // touch-action removes double-tap zoom delay on the grid.
                 style={{ fontSize: 16, touchAction: 'manipulation' }}

@@ -49,7 +49,7 @@ export function ClueList({ clues, selectedClue, onSelect, completed, grading, co
       const isSelected = selectedClue?.clue_number === c.clue_number && selectedClue?.direction === c.direction;
       const grade = grading?.[key];
       const gradeClass =
-        grade === true ? 'text-green-700' : grade === false ? 'text-red-600' : '';
+        grade === true ? 'text-[#4ADE80]' : grade === false ? 'text-[#FF6B81]' : '';
       const correction = grade === false ? corrections?.[key] : undefined;
       const isRevealed = revealed.has(key);
       return (
@@ -57,27 +57,27 @@ export function ClueList({ clues, selectedClue, onSelect, completed, grading, co
           <button
             type="button"
             onClick={() => onSelect(c)}
-            className={`w-full rounded px-2 py-1 text-left text-sm ${
-              isSelected ? 'bg-amber-200 font-semibold' : 'hover:bg-slate-100'
+            className={`w-full rounded-md px-2 py-1 text-left text-sm ${
+              isSelected ? 'bg-[rgba(139,124,255,0.22)] font-semibold' : 'hover:bg-[rgba(139,124,255,0.08)]'
             } ${
               gradeClass ||
-              (completed?.has(key) ? 'text-slate-400 line-through decoration-1' : 'text-slate-800')
+              (completed?.has(key) ? 'text-[#64607A] line-through decoration-1' : 'text-[#C7CCDD]')
             }`}
           >
-            <span className="mr-1 font-mono text-xs text-slate-500">{c.clue_number}.</span>
+            <span className="font-arena-mono mr-1 text-xs text-[#A79BFF]">{c.clue_number}.</span>
             {c.clue_text}
-            {grade === true && <span className="ml-1 text-xs font-bold text-green-600">✓</span>}
-            {grade === false && <span className="ml-1 text-xs font-bold text-red-500">✗</span>}
+            {grade === true && <span className="ml-1 text-xs font-bold text-[#4ADE80]">✓</span>}
+            {grade === false && <span className="ml-1 text-xs font-bold text-[#FF6B81]">✗</span>}
           </button>
           {correction && (
             <div className="px-2 pb-1">
               {isRevealed ? (
                 <p className="text-xs">
-                  <span className="text-slate-500">
-                    You: <span className="font-mono">{submittedWords?.[key]?.trim() || '—'}</span>
+                  <span className="text-[#9CA3B8]">
+                    You: <span className="font-arena-mono">{submittedWords?.[key]?.trim() || '—'}</span>
                   </span>
-                  <span className="mx-1 text-slate-400">→</span>
-                  <span className="font-mono font-semibold text-green-700">{correction}</span>
+                  <span className="mx-1 text-[#64607A]">→</span>
+                  <span className="font-arena-mono font-semibold text-[#4ADE80]">{correction}</span>
                 </p>
               ) : (
                 <button
@@ -89,7 +89,7 @@ export function ClueList({ clues, selectedClue, onSelect, completed, grading, co
                       return next;
                     })
                   }
-                  className="text-xs font-semibold text-slate-400 underline decoration-dotted hover:text-slate-600"
+                  className="text-xs font-semibold text-[#9CA3B8] underline decoration-dotted hover:text-[#F8FAFC]"
                 >
                   Show answer
                 </button>
@@ -104,7 +104,7 @@ export function ClueList({ clues, selectedClue, onSelect, completed, grading, co
     <div>
       {/* Small screens: Across/Down tabs to avoid a very long scroll. */}
       <div className="sm:hidden">
-        <div className="mb-2 grid grid-cols-2 gap-1 rounded-md bg-slate-100 p-1" role="tablist">
+        <div className="mb-2 grid grid-cols-2 gap-1 rounded-md bg-[rgba(255,255,255,0.055)] p-1" role="tablist">
           {(['across', 'down'] as const).map((t) => (
             <button
               key={t}
@@ -112,8 +112,8 @@ export function ClueList({ clues, selectedClue, onSelect, completed, grading, co
               role="tab"
               aria-selected={tab === t}
               onClick={() => setTab(t)}
-              className={`rounded px-2 py-1.5 text-xs font-bold uppercase tracking-wide ${
-                tab === t ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
+              className={`font-sg rounded px-2 py-1.5 text-xs font-bold uppercase tracking-wide ${
+                tab === t ? 'bg-[rgba(139,124,255,0.25)] text-[#F8FAFC]' : 'text-[#64607A]'
               }`}
             >
               {t}
@@ -126,11 +126,11 @@ export function ClueList({ clues, selectedClue, onSelect, completed, grading, co
       {/* Larger screens: side-by-side columns. */}
       <div className="hidden grid-cols-2 gap-4 sm:grid">
         <div>
-          <h3 className="mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">Across</h3>
+          <h3 className="font-sg mb-1 text-xs font-bold uppercase tracking-wide text-[#8E87A8]">Across</h3>
           <ul className="space-y-0.5">{renderList(across, 'd')}</ul>
         </div>
         <div>
-          <h3 className="mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">Down</h3>
+          <h3 className="font-sg mb-1 text-xs font-bold uppercase tracking-wide text-[#8E87A8]">Down</h3>
           <ul className="space-y-0.5">{renderList(down, 'd')}</ul>
         </div>
       </div>
