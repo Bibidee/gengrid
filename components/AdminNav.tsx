@@ -20,10 +20,10 @@ export function AdminNav() {
   }
 
   return (
-    <nav className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
-      <div className="flex items-center gap-6">
+    <nav className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-slate-200 bg-white px-4 py-3 sm:px-6">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:gap-6">
         <span className="font-bold text-slate-900">GenGrid Admin</span>
-        <ul className="flex gap-4 text-sm">
+        <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
           {LINKS.map((l) => (
             <li key={l.href}>
               <Link href={l.href} className="text-slate-600 hover:text-slate-900">

@@ -100,7 +100,7 @@ export default function EditPuzzlePage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <AdminNav />
-      <main className="mx-auto max-w-3xl px-6 py-10">
+      <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900">{puzzle.title}</h1>
           <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium capitalize text-slate-600">

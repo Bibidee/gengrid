@@ -19,7 +19,12 @@ type RoomDetail = {
   puzzles: { title: string } | { title: string }[] | null;
 };
 
-type LeaderboardRow = { status: 'joined' | 'active' | 'submitted' };
+type LeaderboardRow = {
+  id: string;
+  username: string;
+  status: 'joined' | 'active' | 'submitted';
+  joined_at: string;
+};
 
 export default function RoomControlPage() {
   const { loading: authLoading } = useAdminSession();
@@ -82,7 +87,7 @@ export default function RoomControlPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <AdminNav />
-      <main className="mx-auto max-w-2xl px-6 py-10">
+      <main className="mx-auto max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
         <h1 className="text-2xl font-bold text-slate-900">{room.room_name}</h1>
         <p className="mb-6 text-sm text-slate-500">
           Code <span className="font-mono font-semibold">{room.room_code}</span> · {puzzleTitle} · status{' '}
@@ -100,7 +105,40 @@ export default function RoomControlPage() {
           </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="mb-6 rounded-lg border border-slate-200 bg-white">
+          <p className="border-b border-slate-100 px-5 py-3 text-sm font-semibold text-slate-700">
+            Who&apos;s in the room
+          </p>
+          {players.length === 0 ? (
+            <p className="px-5 py-4 text-sm text-slate-400">No one has joined yet.</p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {players.map((p) => (
+                <li key={p.id} className="flex items-center justify-between px-5 py-2.5 text-sm">
+                  <span className="font-medium text-slate-900">{p.username}</span>
+                  <span className="flex items-center gap-3">
+                    <span className="text-xs text-slate-400">
+                      {new Date(p.joined_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        p.status === 'submitted'
+                          ? 'bg-green-100 text-green-700'
+                          : p.status === 'active'
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      {p.status}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-3">
           <button
             onClick={handleStart}
             disabled={busy || room.status !== 'waiting'}

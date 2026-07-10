@@ -42,7 +42,7 @@ export default function RoomsPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <AdminNav />
-      <main className="mx-auto max-w-4xl px-6 py-10">
+      <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-10">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900">Rooms</h1>
           <Link
@@ -56,7 +56,7 @@ export default function RoomsPage() {
         {loading ? (
           <p className="text-slate-400">Loading…</p>
         ) : (
-          <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
             <table className="w-full text-sm">
               <thead className="bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-500">
                 <tr>

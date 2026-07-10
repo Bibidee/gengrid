@@ -25,6 +25,15 @@ export default function LobbyPage() {
   // Names in stable join order (oldest first) for the orbit stage.
   const [players, setPlayers] = useState<string[]>([]);
   const knownRef = useRef<Set<string>>(new Set());
+  // Tapped avatar's name (mobile has no hover, so tap reveals a name pill;
+  // it auto-hides after a moment).
+  const [revealed, setRevealed] = useState<string | null>(null);
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const revealName = (name: string) => {
+    if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+    setRevealed(name);
+    revealTimerRef.current = setTimeout(() => setRevealed(null), 2000);
+  };
 
   useEffect(() => {
     if (!loadPlayerSession(roomCode)) {
@@ -88,14 +97,17 @@ export default function LobbyPage() {
           const x = 150 + 108 * Math.cos(angle);
           const y = 150 + 108 * Math.sin(angle);
           return (
-            <div
+            <button
               key={name}
+              type="button"
               className={`orbit-avatar${name === me ? ' host' : ''}`}
               style={{ left: x, top: y }}
               title={name}
+              onClick={() => revealName(name)}
             >
               {name.charAt(0).toUpperCase()}
-            </div>
+              {revealed === name && <span className="orbit-name">{name}</span>}
+            </button>
           );
         })}
       </div>

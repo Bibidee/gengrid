@@ -32,6 +32,9 @@ type PlayPayload = {
 
 const SYNC_INTERVAL_MS = 15_000;
 const OFFSET_REFRESH_MS = 30_000;
+// Anti-cheat: leaving the game screen (switching tabs/apps) for longer than
+// this auto-submits the player's answers as-is when they return.
+const AWAY_LIMIT_MS = 15_000;
 
 export default function PlayPage() {
   const params = useParams<{ code: string }>();
@@ -44,6 +47,7 @@ export default function PlayPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
   const [showBoard, setShowBoard] = useState(false);
   // Cosmetic 3-2-1-GO overlay shown only when the player arrives within ~5s
   // of the round's server-authoritative start. Never affects timing.
@@ -312,6 +316,29 @@ export default function PlayPage() {
     }
   }, [submitting, roomCode, submittedAnswers]);
 
+  // Away-timeout: if the player leaves this screen (other tab, another app,
+  // phone locked) past AWAY_LIMIT_MS, auto-submit what they have on return.
+  // Browsers throttle hidden-tab timers, so we timestamp on hide and measure
+  // on return rather than counting down while hidden.
+  const hiddenAtRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!puzzle) return;
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        hiddenAtRef.current = Date.now();
+        return;
+      }
+      const hiddenAt = hiddenAtRef.current;
+      hiddenAtRef.current = null;
+      if (hiddenAt !== null && Date.now() - hiddenAt >= AWAY_LIMIT_MS && !submittedRef.current) {
+        setTimedOut(true);
+        handleSubmit();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [puzzle, handleSubmit]);
+
   // Timer hit 00:00: auto-submit anyone who hasn't, then everyone moves to
   // the leaderboard (which only unlocks server-side after ends_at).
   const handleExpire = useCallback(async () => {
@@ -340,12 +367,14 @@ export default function PlayPage() {
   if (submitted) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-6 py-10 text-center">
-        <div className="kicker">Answers Locked</div>
+        <div className="kicker">{timedOut ? 'Timed Out' : 'Answers Locked'}</div>
         <h1 className="font-sg text-2xl font-semibold tracking-tight text-[#F8FAFC]">
-          You submitted your crossword.
+          {timedOut ? 'You were away too long.' : 'You submitted your crossword.'}
         </h1>
         <p className="max-w-sm font-light text-[#9CA3B8]">
-          Waiting for the round to end. Leaderboard unlocks when the timer reaches 00:00.
+          {timedOut
+            ? 'You left the game screen for over 15 seconds, so your answers were submitted as-is.'
+            : 'Waiting for the round to end. Leaderboard unlocks when the timer reaches 00:00.'}
         </p>
         <div className="glass-card px-8 py-4">
           <Countdown startsAt={puzzle.starts_at} endsAt={puzzle.ends_at} offsetMs={clockOffsetMs} onExpire={handleExpire} />
