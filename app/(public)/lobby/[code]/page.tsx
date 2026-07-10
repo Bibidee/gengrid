@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { usePolling } from '@/lib/use-polling';
 import { loadPlayerSession } from '@/lib/player-session';
-import { startAmbientPad, stopAmbientPad, joinTone } from '@/lib/sound';
+import { startMusic, stopMusic, joinTone } from '@/lib/sound';
 
 type StatusPayload = {
   status: 'waiting' | 'scheduled' | 'live' | 'finished';
@@ -40,8 +40,10 @@ export default function LobbyPage() {
       router.replace('/join');
       return;
     }
-    startAmbientPad();
-    return () => stopAmbientPad(0.5);
+    // GenGrid theme song while waiting; stops when the match starts (unmount)
+    // and obeys the global mute toggle.
+    startMusic();
+    return () => stopMusic();
   }, [roomCode, router]);
 
   usePolling(async () => {

@@ -31,9 +31,53 @@ export function toggleMute(): boolean {
   } catch {
     // storage full/blocked — keep in-memory state
   }
-  if (mutedState) stopAmbientPad(0.2);
+  if (mutedState) {
+    stopAmbientPad(0.2);
+    pauseMusic();
+  } else if (musicWanted) {
+    startMusic();
+  }
   listeners.forEach((fn) => fn(mutedState!));
   return mutedState;
+}
+
+// ── theme song ──
+// The GenGrid song (public/gengrid-song.mpeg) loops softly wherever a page
+// calls startMusic(). Obeys the same mute toggle as the WebAudio effects:
+// muting pauses it instantly, unmuting resumes if the page still wants it.
+let music: HTMLAudioElement | null = null;
+let musicWanted = false;
+
+export function startMusic() {
+  if (!isBrowser()) return;
+  musicWanted = true;
+  if (isMuted()) return;
+  try {
+    if (!music) {
+      music = new Audio('/gengrid-song.mpeg');
+      music.loop = true;
+      music.volume = 0.35;
+    }
+    // play() rejects if no user gesture happened yet — primeAudioOnGesture
+    // retries on the first tap/keypress, so we just swallow it here.
+    music.play().catch(() => {});
+  } catch {
+    // audio unavailable — stay silent
+  }
+}
+
+function pauseMusic() {
+  try {
+    music?.pause();
+  } catch {
+    // already stopped
+  }
+}
+
+export function stopMusic() {
+  musicWanted = false;
+  pauseMusic();
+  if (music) music.currentTime = 0;
 }
 
 export function onMuteChange(fn: (muted: boolean) => void): () => void {
@@ -148,7 +192,12 @@ export function stopAmbientPad(fadeSec = 0.4) {
 export function primeAudioOnGesture() {
   if (!isBrowser()) return () => {};
   const handler = () => {
-    if (!isMuted()) ac();
+    if (!isMuted()) {
+      ac();
+      // Autoplay policies block music started before any gesture — retry it
+      // on the first interaction if a page has asked for it.
+      if (musicWanted) startMusic();
+    }
     window.removeEventListener('pointerdown', handler);
     window.removeEventListener('keydown', handler);
   };
