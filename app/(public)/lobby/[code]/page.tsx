@@ -28,6 +28,7 @@ export default function LobbyPage() {
   // Tapped avatar's name (mobile has no hover, so tap reveals a name pill;
   // it auto-hides after a moment).
   const [revealed, setRevealed] = useState<string | null>(null);
+  const [showRules, setShowRules] = useState(false);
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const revealName = (name: string) => {
     if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
@@ -74,6 +75,19 @@ export default function LobbyPage() {
   const me = typeof window !== 'undefined' ? loadPlayerSession(roomCode)?.username : undefined;
   const n = Math.max(players.length, 1);
 
+  const rulesCard = (
+    <div className="glass-card w-full max-w-xs px-6 py-5 text-left">
+      <p className="kicker mb-3">How to Play</p>
+      <ol className="space-y-2.5 text-[0.8rem] leading-relaxed text-[#9CA3B8]">
+        <li><span className="font-semibold text-[#F8FAFC]">1.</span> When the host starts, everyone gets the same crossword at the same time.</li>
+        <li><span className="font-semibold text-[#F8FAFC]">2.</span> Tap a square and type. Tap it again to switch between across and down.</li>
+        <li><span className="font-semibold text-[#F8FAFC]">3.</span> Beat the clock — submit before the timer hits 00:00, or your answers submit automatically.</li>
+        <li><span className="font-semibold text-[#F8FAFC]">4.</span> Stay on the game screen. Leaving for 45+ seconds locks in your answers as-is.</li>
+        <li><span className="font-semibold text-[#F8FAFC]">5.</span> Most correct answers wins — fastest time breaks ties. Leaderboard unlocks when the round ends.</li>
+      </ol>
+    </div>
+  );
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 py-10 text-center">
       <div className="kicker mb-2">Arena · {roomCode}</div>
@@ -82,6 +96,12 @@ export default function LobbyPage() {
       </h1>
 
       {error && <p className="mb-4 text-[#FF6B81]">{error}</p>}
+
+      <div className="flex items-center justify-center gap-12">
+        {/* Rules sit beside the orbit on desktop; on mobile they open from a
+            button below (no hover, limited width). */}
+        <div className="hidden lg:block">{rulesCard}</div>
+        <div>
 
       <div className="orbit-stage mb-7">
         <div className="orbit-ring" />
@@ -127,9 +147,40 @@ export default function LobbyPage() {
           <span>.</span>
         </span>
       </p>
+      {/* Mobile/tablet: no room beside the orbit, so the rules open from a
+          button into a temporary overlay. */}
+      <button
+        type="button"
+        onClick={() => setShowRules(true)}
+        className="mt-5 rounded-full border border-[rgba(139,124,255,0.4)] bg-[rgba(139,124,255,0.12)] px-5 py-2 text-sm font-semibold text-[#F8FAFC] lg:hidden"
+      >
+        How to play
+      </button>
+      </div>
+      </div>
+
       <p className="mt-8 max-w-sm text-xs text-[#64607A]">
         The match starts automatically once the admin begins the room.
       </p>
+
+      {showRules && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(11,9,20,0.8)] px-6 backdrop-blur-sm lg:hidden"
+          onClick={() => setShowRules(false)}
+        >
+          <div onClick={(e) => e.stopPropagation()} className="relative">
+            {rulesCard}
+            <button
+              type="button"
+              onClick={() => setShowRules(false)}
+              aria-label="Close rules"
+              className="absolute right-3 top-3 text-lg text-[#9CA3B8]"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
