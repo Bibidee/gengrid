@@ -34,7 +34,7 @@ const SYNC_INTERVAL_MS = 15_000;
 const OFFSET_REFRESH_MS = 30_000;
 // Anti-cheat: leaving the game screen (switching tabs/apps) for longer than
 // this auto-submits the player's answers as-is when they return.
-const AWAY_LIMIT_MS = 15_000;
+const AWAY_LIMIT_MS = 45_000;
 
 export default function PlayPage() {
   const params = useParams<{ code: string }>();
@@ -373,7 +373,7 @@ export default function PlayPage() {
         </h1>
         <p className="max-w-sm font-light text-[#9CA3B8]">
           {timedOut
-            ? 'You left the game screen for over 15 seconds, so your answers were submitted as-is.'
+            ? 'You left the game screen for over 45 seconds, so your answers were submitted as-is.'
             : 'Waiting for the round to end. Leaderboard unlocks when the timer reaches 00:00.'}
         </p>
         <div className="glass-card px-8 py-4">

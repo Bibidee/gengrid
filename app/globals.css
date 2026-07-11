@@ -313,7 +313,9 @@ body {
   left: 50%;
   width: 54px;
   height: 54px;
-  margin: -27px 0 0 -27px;
+  /* Centered on its (left, top) point by the translate that orbit-in leaves
+     behind — no margin offset, or the ring drifts 27px up-left of center. */
+  transform: translate(-50%, -50%);
   border-radius: 50%;
   background: rgba(20, 16, 31, 0.7);
   backdrop-filter: blur(10px);

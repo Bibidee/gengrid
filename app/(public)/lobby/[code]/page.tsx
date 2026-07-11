@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { usePolling } from '@/lib/use-polling';
 import { loadPlayerSession } from '@/lib/player-session';
-import { startMusic, stopMusic, joinTone } from '@/lib/sound';
+import { joinTone } from '@/lib/sound';
 
 type StatusPayload = {
   status: 'waiting' | 'scheduled' | 'live' | 'finished';
@@ -40,10 +40,7 @@ export default function LobbyPage() {
       router.replace('/join');
       return;
     }
-    // GenGrid theme song while waiting; stops when the match starts (unmount)
-    // and obeys the global mute toggle.
-    startMusic();
-    return () => stopMusic();
+    // Theme song is owned by ArenaChrome (plays across all player pages).
   }, [roomCode, router]);
 
   usePolling(async () => {
