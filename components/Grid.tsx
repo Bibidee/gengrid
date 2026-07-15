@@ -109,7 +109,8 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
                 value={values[key] ?? ''}
                 onChange={(e) => {
                   if (readOnly) return;
-                  const v = e.target.value.replace(/[^a-zA-Z]/g, '').slice(-1).toUpperCase();
+                  // Letters and digits — some answers are alphanumeric (e.g. "A2A").
+                  const v = e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(-1).toUpperCase();
                   onChange(r, c, v);
                   // Advance only within the current word; skip over cells
                   // that already hold a letter (crossings filled earlier)
