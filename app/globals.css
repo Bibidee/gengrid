@@ -25,22 +25,27 @@ body {
 
 /* ══════════ ARENA THEME (player-facing) ══════════ */
 .arena {
-  --bg: #0B0914;
-  --bg2: #0F0B1F;
-  --glass: rgba(255, 255, 255, 0.055);
-  --glass-b: rgba(255, 255, 255, 0.09);
-  --primary: #8B7CFF;
-  --primary2: #A79BFF;
-  --accent: #6EE7F9;
-  --glow: #D9A8FF;
+  /* "Asterin" palette: deep navy stage, saturated violet + cyan accents,
+     cool slate grays. Swapped in from the asterin mockup — logic and layout
+     untouched. */
+  --bg: #060816;
+  --bg2: #090C1E;
+  --surf: #0F172A;
+  --card: #141D35;
+  --glass: rgba(15, 23, 42, 0.55);
+  --glass-b: rgba(124, 58, 237, 0.18);
+  --primary: #7C3AED;
+  --primary2: #9D60FF;
+  --accent: #67E8F9;
+  --glow: #B480FF;
   --gold: #F6C453;
   --silver: #C0C7D1;
   --bronze: #C08A5A;
-  --success: #4ADE80;
+  --success: #34D399;
   --danger: #FF6B81;
   --text: #F8FAFC;
-  --text2: #9CA3B8;
-  --muted: #64607A;
+  --text2: #94A3B8;
+  --muted: #5B7194;
   --sg: var(--font-sg), system-ui, sans-serif;
   --body: var(--font-inter), system-ui, sans-serif;
   --mono: var(--font-plex-mono), monospace;
@@ -79,32 +84,78 @@ body {
   pointer-events: none;
   overflow: hidden;
   background:
-    radial-gradient(ellipse 100% 60% at 50% -10%, rgba(139, 124, 255, 0.16), transparent 60%),
-    radial-gradient(ellipse 70% 50% at 85% 95%, rgba(110, 231, 249, 0.07), transparent 60%),
+    radial-gradient(ellipse 100% 60% at 50% -10%, rgba(124, 58, 237, 0.16), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 85% 95%, rgba(103, 232, 249, 0.07), transparent 60%),
     linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
 }
-.arena-atmosphere .beam {
+/* Aurora blobs: blurred drifting color orbs (asterin). Replaces the old
+   light beams — purely decorative, zero pointer events. */
+.arena-atmosphere .ao {
   position: absolute;
-  top: -10%;
-  width: 2px;
-  height: 120%;
-  opacity: 0.12;
-  background: linear-gradient(180deg, transparent, var(--glow), transparent);
-  filter: blur(1px);
-  animation: beam-sway 18s ease-in-out infinite;
+  border-radius: 50%;
+  filter: blur(100px);
 }
-.arena-atmosphere .b1 { left: 18%; animation-duration: 20s; }
-.arena-atmosphere .b2 {
-  left: 50%;
-  opacity: 0.08;
-  animation-duration: 26s;
-  animation-delay: -6s;
-  background: linear-gradient(180deg, transparent, var(--accent), transparent);
+.arena-atmosphere .ao1 {
+  width: 720px;
+  height: 580px;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.38) 0%, transparent 70%);
+  top: -220px;
+  left: -170px;
+  animation: ao1 30s ease-in-out infinite alternate;
 }
-.arena-atmosphere .b3 { left: 80%; animation-duration: 22s; animation-delay: -11s; }
-@keyframes beam-sway {
-  0%, 100% { transform: translateX(0) scaleY(1); }
-  50% { transform: translateX(24px) scaleY(1.06); }
+.arena-atmosphere .ao2 {
+  width: 580px;
+  height: 480px;
+  background: radial-gradient(circle, rgba(103, 232, 249, 0.18) 0%, transparent 70%);
+  bottom: -180px;
+  right: -130px;
+  animation: ao2 36s ease-in-out infinite alternate;
+}
+.arena-atmosphere .ao3 {
+  width: 420px;
+  height: 340px;
+  background: radial-gradient(circle, rgba(157, 96, 255, 0.2) 0%, transparent 70%);
+  top: 32%;
+  left: 54%;
+  animation: ao3 24s ease-in-out infinite alternate;
+}
+.arena-atmosphere .ao4 {
+  width: 280px;
+  height: 240px;
+  background: radial-gradient(circle, rgba(103, 232, 249, 0.12) 0%, transparent 70%);
+  top: 15%;
+  right: 18%;
+  animation: ao4 20s ease-in-out infinite alternate;
+}
+@keyframes ao1 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(110px, 90px) scale(1.09); }
+  100% { transform: translate(55px, 160px) scale(0.95); }
+}
+@keyframes ao2 {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(-90px, -75px) scale(1.11); }
+  100% { transform: translate(-45px, -130px) scale(0.93); }
+}
+@keyframes ao3 {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-75px, 85px) scale(1.18); }
+}
+@keyframes ao4 {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(50px, -60px) scale(1.14); }
+}
+/* Constellation canvas sits with the atmosphere, behind all content. */
+.arena-sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.55;
+}
+@media (prefers-reduced-motion: reduce) {
+  .arena-atmosphere .ao { animation: none; }
+  .arena-sky { display: none; }
 }
 
 /* ── mute toggle ── */
@@ -117,7 +168,7 @@ body {
   height: 38px;
   border-radius: 50%;
   border: 1px solid var(--glass-b);
-  background: rgba(20, 16, 31, 0.8);
+  background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(18px);
   color: var(--text2);
   cursor: pointer;
@@ -141,19 +192,34 @@ body {
 /* ── buttons ── */
 .btn-arena-primary {
   font-family: var(--sg);
-  font-weight: 600;
+  font-weight: 700;
   border-radius: 14px;
   border: none;
   cursor: pointer;
-  background: linear-gradient(135deg, var(--primary), #6E5FE0);
-  color: #0B0914;
-  box-shadow: 0 4px 28px rgba(139, 124, 255, 0.35);
-  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms, opacity 220ms;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary2) 50%, var(--accent) 100%);
+  background-size: 200% auto;
+  color: var(--bg);
+  box-shadow: 0 4px 28px rgba(124, 58, 237, 0.45);
+  transition: background-position 500ms, transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms, opacity 220ms;
 }
 .btn-arena-primary:hover:not(:disabled) {
+  background-position: right center;
   transform: translateY(-2px) scale(1.015);
-  box-shadow: 0 12px 36px rgba(139, 124, 255, 0.45);
+  box-shadow: 0 8px 44px rgba(103, 232, 249, 0.45);
 }
+.btn-arena-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 650ms;
+}
+.btn-arena-primary:hover:not(:disabled)::before { left: 100%; }
 .btn-arena-primary:disabled { opacity: 0.5; cursor: default; }
 .btn-arena-ghost {
   font-family: var(--sg);
@@ -167,8 +233,8 @@ body {
   transition: all 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 .btn-arena-ghost:hover {
-  border-color: rgba(139, 124, 255, 0.5);
-  background: rgba(139, 124, 255, 0.1);
+  border-color: rgba(124, 58, 237, 0.5);
+  background: rgba(124, 58, 237, 0.1);
 }
 
 /* ── inputs ── */
@@ -187,7 +253,7 @@ body {
 }
 .arena-input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(139, 124, 255, 0.16);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.16);
 }
 .arena-input::placeholder { color: var(--muted); }
 .input-lbl {
@@ -207,16 +273,27 @@ body {
   font-weight: 600;
   letter-spacing: -0.05em;
   line-height: 0.92;
-  color: var(--text);
-  opacity: 0;
-  transform: translateY(18px);
-  animation: fade-up 0.9s 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.home-title span {
-  background: linear-gradient(120deg, var(--primary2), var(--glow) 55%, var(--accent));
+  /* Whole wordmark carries the shimmer gradient (asterin), not just "Grid". */
+  background: linear-gradient(115deg, var(--text) 5%, var(--glow) 28%, var(--accent) 52%, var(--primary2) 76%, var(--text) 100%);
+  background-size: 280% auto;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  opacity: 0;
+  transform: translateY(18px);
+  animation: fade-up 0.9s 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+    shimmer 9s 1.2s linear infinite;
+}
+@keyframes shimmer { to { background-position: 280% center; } }
+/* Reusable shimmering gradient text (asterin) — home title, results title,
+   lobby core, etc. */
+.grad-shimmer {
+  background: linear-gradient(115deg, var(--text) 5%, var(--glow) 28%, var(--accent) 52%, var(--primary2) 76%, var(--text) 100%);
+  background-size: 280% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 9s linear infinite;
 }
 .home-kicker {
   font-family: var(--mono);
@@ -237,9 +314,9 @@ body {
   align-items: center;
   gap: 0.625rem;
   padding: 0.42rem 1.05rem;
-  border: 1px solid rgba(110, 231, 249, 0.2);
+  border: 1px solid rgba(103, 232, 249, 0.2);
   border-radius: 999px;
-  background: rgba(110, 231, 249, 0.045);
+  background: rgba(103, 232, 249, 0.045);
   opacity: 0;
   animation: fade-up 0.8s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -261,17 +338,19 @@ body {
   border-radius: 16px;
   border: none;
   cursor: pointer;
-  background: linear-gradient(135deg, var(--primary), #6E5FE0);
-  color: #0B0914;
-  box-shadow: 0 6px 34px rgba(139, 124, 255, 0.4);
-  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary2) 50%, var(--accent) 100%);
+  background-size: 200% auto;
+  color: var(--bg);
+  box-shadow: 0 6px 34px rgba(124, 58, 237, 0.45);
+  transition: background-position 500ms, transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms;
   opacity: 0;
   transform: translateY(18px) scale(0.96);
   animation: fade-up-btn 0.9s 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .enter-arena:hover {
+  background-position: right center;
   transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 14px 44px rgba(139, 124, 255, 0.5);
+  box-shadow: 0 14px 44px rgba(103, 232, 249, 0.45);
 }
 @keyframes fade-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fade-up-btn { to { opacity: 1; transform: translateY(0) scale(1); } }
@@ -296,8 +375,8 @@ body {
 
 /* ── lobby orbit ── */
 .orbit-stage { position: relative; width: 300px; height: 300px; margin: 0 auto; }
-.orbit-ring { position: absolute; inset: 0; border-radius: 50%; border: 1px dashed rgba(139, 124, 255, 0.16); }
-.orbit-ring.r2 { inset: 34px; border-color: rgba(110, 231, 249, 0.1); }
+.orbit-ring { position: absolute; inset: 0; border-radius: 50%; border: 1px dashed rgba(124, 58, 237, 0.16); }
+.orbit-ring.r2 { inset: 34px; border-color: rgba(103, 232, 249, 0.1); }
 .orbit-core {
   position: absolute;
   top: 50%;
@@ -317,7 +396,7 @@ body {
      behind — no margin offset, or the ring drifts 27px up-left of center. */
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: rgba(20, 16, 31, 0.7);
+  background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(10px);
   border: 1.5px solid var(--primary);
   display: flex;
@@ -328,7 +407,7 @@ body {
   font-size: 0.92rem;
   color: var(--text);
   opacity: 0;
-  box-shadow: 0 4px 20px rgba(139, 124, 255, 0.2);
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.2);
   animation: orbit-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .orbit-avatar.host { border-color: var(--gold); box-shadow: 0 0 16px rgba(246, 196, 83, 0.3); }
@@ -341,8 +420,8 @@ body {
   white-space: nowrap;
   padding: 3px 10px;
   border-radius: 999px;
-  background: rgba(20, 16, 31, 0.92);
-  border: 1px solid rgba(139, 124, 255, 0.4);
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(124, 58, 237, 0.4);
   font-family: var(--body);
   font-size: 0.7rem;
   font-weight: 600;
@@ -386,7 +465,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(5, 3, 10, 0.95);
+  background: rgba(6, 8, 22, 0.95);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -398,12 +477,20 @@ body {
   font-family: var(--sg);
   font-size: 8rem;
   font-weight: 700;
-  color: var(--text);
   letter-spacing: -0.04em;
+  /* Gradient digits (asterin countdown). */
+  background: linear-gradient(135deg, var(--primary2), var(--accent), var(--glow));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   animation: cd-pulse 0.9s ease-in-out;
 }
 .cd-num.go {
-  color: var(--accent);
+  background: linear-gradient(135deg, var(--accent), #A5F3FD);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   font-size: 3.4rem;
   letter-spacing: 0.28em;
   animation: cd-pulse 0.8s ease-in-out;
@@ -422,7 +509,7 @@ body {
   border: 1px solid var(--glass-b);
   backdrop-filter: blur(20px);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 0 80px rgba(139, 124, 255, 0.08);
+    0 0 80px rgba(124, 58, 237, 0.08);
   display: inline-block;
 }
 

@@ -359,7 +359,7 @@ export default function PlayPage() {
   if (!puzzle) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <p className="font-arena-mono text-sm text-[#9CA3B8]">Loading puzzle…</p>
+        <p className="font-arena-mono text-sm text-[#94A3B8]">Loading puzzle…</p>
       </main>
     );
   }
@@ -371,7 +371,7 @@ export default function PlayPage() {
         <h1 className="font-sg text-2xl font-semibold tracking-tight text-[#F8FAFC]">
           {timedOut ? 'You were away too long.' : 'You submitted your crossword.'}
         </h1>
-        <p className="max-w-sm font-light text-[#9CA3B8]">
+        <p className="max-w-sm font-light text-[#94A3B8]">
           {timedOut
             ? 'You left the game screen for over 45 seconds, so your answers were submitted as-is.'
             : 'Waiting for the round to end. Leaderboard unlocks when the timer reaches 00:00.'}
@@ -382,7 +382,7 @@ export default function PlayPage() {
         <button
           type="button"
           onClick={() => setShowBoard((s) => !s)}
-          className="text-sm font-semibold text-[#9CA3B8] underline decoration-dotted hover:text-[#F8FAFC]"
+          className="text-sm font-semibold text-[#94A3B8] underline decoration-dotted hover:text-[#F8FAFC]"
         >
           {showBoard ? 'Hide your board' : 'View your board'}
         </button>
@@ -403,7 +403,7 @@ export default function PlayPage() {
             />
           </div>
         )}
-        <p className="font-arena-mono text-xs text-[#64607A]">Room {roomCode}</p>
+        <p className="font-arena-mono text-xs text-[#5B7194]">Room {roomCode}</p>
       </main>
     );
   }
@@ -417,12 +417,12 @@ export default function PlayPage() {
           </div>
         </div>
       )}
-      <header className="sticky top-0 z-20 border-b border-[rgba(255,255,255,0.08)] bg-[rgba(11,9,20,0.85)] px-4 py-2 backdrop-blur-md">
+      <header className="sticky top-0 z-20 border-b border-[rgba(255,255,255,0.08)] bg-[rgba(6,8,22,0.85)] px-4 py-2 backdrop-blur-md">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 pr-12">
           <div className="min-w-0">
             <h1 className="font-sg truncate text-base font-semibold text-[#F8FAFC] sm:text-xl">{puzzle.title}</h1>
-            <p className="font-arena-mono text-[11px] text-[#8E87A8]">
-              Room <span className="font-semibold text-[#6EE7F9]">{roomCode}</span>
+            <p className="font-arena-mono text-[11px] text-[#7A8DB0]">
+              Room <span className="font-semibold text-[#67E8F9]">{roomCode}</span>
               {puzzle.theme ? ` · ${puzzle.theme}` : ''}
             </p>
           </div>
@@ -447,8 +447,8 @@ export default function PlayPage() {
             </div>
 
             {selectedClue && (
-              <div className="mt-3 rounded-xl border border-[rgba(139,124,255,0.28)] bg-[rgba(139,124,255,0.14)] px-3 py-2 text-sm text-[#F8FAFC]">
-                <span className="font-arena-mono mr-1 text-xs font-bold text-[#A79BFF]">
+              <div className="mt-3 rounded-xl border border-[rgba(124,58,237,0.28)] bg-[rgba(124,58,237,0.14)] px-3 py-2 text-sm text-[#F8FAFC]">
+                <span className="font-arena-mono mr-1 text-xs font-bold text-[#9D60FF]">
                   {selectedClue.clue_number}
                   {selectedClue.direction === 'across' ? 'A' : 'D'}.
                 </span>
@@ -476,7 +476,7 @@ export default function PlayPage() {
 
       {/* Always-accessible submit on small screens; sits below content so it
           never covers the grid. */}
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[rgba(255,255,255,0.08)] bg-[rgba(11,9,20,0.9)] px-4 py-3 backdrop-blur-md sm:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[rgba(255,255,255,0.08)] bg-[rgba(6,8,22,0.9)] px-4 py-3 backdrop-blur-md sm:hidden">
         <button
           type="button"
           onClick={handleSubmit}

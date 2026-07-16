@@ -56,7 +56,7 @@ export function Countdown({ startsAt, endsAt, offsetMs = 0, onExpire, ring = fal
 
   if (now < startsAtMs) {
     return (
-      <div className="font-arena-mono text-lg font-semibold text-[#9CA3B8]">
+      <div className="font-arena-mono text-lg font-semibold text-[#94A3B8]">
         Starting in {formatDuration(startsAtMs - now)}
       </div>
     );
@@ -73,7 +73,7 @@ export function Countdown({ startsAt, endsAt, offsetMs = 0, onExpire, ring = fal
     return (
       <div className="relative h-16 w-16 shrink-0">
         <svg width="64" height="64" viewBox="0 0 64 64">
-          <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(139,124,255,0.12)" strokeWidth="4" />
+          <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(124,58,237,0.12)" strokeWidth="4" />
           <circle
             cx="32"
             cy="32"
@@ -88,8 +88,8 @@ export function Countdown({ startsAt, endsAt, offsetMs = 0, onExpire, ring = fal
           />
           <defs>
             <linearGradient id="gg-tg" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#8B7CFF" />
-              <stop offset="100%" stopColor="#6EE7F9" />
+              <stop offset="0%" stopColor="#7C3AED" />
+              <stop offset="100%" stopColor="#67E8F9" />
             </linearGradient>
           </defs>
         </svg>

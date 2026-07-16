@@ -49,7 +49,7 @@ export function ClueList({ clues, selectedClue, onSelect, completed, grading, co
       const isSelected = selectedClue?.clue_number === c.clue_number && selectedClue?.direction === c.direction;
       const grade = grading?.[key];
       const gradeClass =
-        grade === true ? 'text-[#4ADE80]' : grade === false ? 'text-[#FF6B81]' : '';
+        grade === true ? 'text-[#34D399]' : grade === false ? 'text-[#FF6B81]' : '';
       const correction = grade === false ? corrections?.[key] : undefined;
       const isRevealed = revealed.has(key);
       return (
@@ -58,26 +58,26 @@ export function ClueList({ clues, selectedClue, onSelect, completed, grading, co
             type="button"
             onClick={() => onSelect(c)}
             className={`w-full rounded-md px-2 py-1 text-left text-sm ${
-              isSelected ? 'bg-[rgba(139,124,255,0.22)] font-semibold' : 'hover:bg-[rgba(139,124,255,0.08)]'
+              isSelected ? 'bg-[rgba(124,58,237,0.22)] font-semibold' : 'hover:bg-[rgba(124,58,237,0.08)]'
             } ${
               gradeClass ||
-              (completed?.has(key) ? 'text-[#64607A] line-through decoration-1' : 'text-[#C7CCDD]')
+              (completed?.has(key) ? 'text-[#5B7194] line-through decoration-1' : 'text-[#C4CFE2]')
             }`}
           >
-            <span className="font-arena-mono mr-1 text-xs text-[#A79BFF]">{c.clue_number}.</span>
+            <span className="font-arena-mono mr-1 text-xs text-[#9D60FF]">{c.clue_number}.</span>
             {c.clue_text}
-            {grade === true && <span className="ml-1 text-xs font-bold text-[#4ADE80]">✓</span>}
+            {grade === true && <span className="ml-1 text-xs font-bold text-[#34D399]">✓</span>}
             {grade === false && <span className="ml-1 text-xs font-bold text-[#FF6B81]">✗</span>}
           </button>
           {correction && (
             <div className="px-2 pb-1">
               {isRevealed ? (
                 <p className="text-xs">
-                  <span className="text-[#9CA3B8]">
+                  <span className="text-[#94A3B8]">
                     You: <span className="font-arena-mono">{submittedWords?.[key]?.trim() || '—'}</span>
                   </span>
-                  <span className="mx-1 text-[#64607A]">→</span>
-                  <span className="font-arena-mono font-semibold text-[#4ADE80]">{correction}</span>
+                  <span className="mx-1 text-[#5B7194]">→</span>
+                  <span className="font-arena-mono font-semibold text-[#34D399]">{correction}</span>
                 </p>
               ) : (
                 <button
@@ -89,7 +89,7 @@ export function ClueList({ clues, selectedClue, onSelect, completed, grading, co
                       return next;
                     })
                   }
-                  className="text-xs font-semibold text-[#9CA3B8] underline decoration-dotted hover:text-[#F8FAFC]"
+                  className="text-xs font-semibold text-[#94A3B8] underline decoration-dotted hover:text-[#F8FAFC]"
                 >
                   Show answer
                 </button>
@@ -113,7 +113,7 @@ export function ClueList({ clues, selectedClue, onSelect, completed, grading, co
               aria-selected={tab === t}
               onClick={() => setTab(t)}
               className={`font-sg rounded px-2 py-1.5 text-xs font-bold uppercase tracking-wide ${
-                tab === t ? 'bg-[rgba(139,124,255,0.25)] text-[#F8FAFC]' : 'text-[#64607A]'
+                tab === t ? 'bg-[rgba(124,58,237,0.25)] text-[#F8FAFC]' : 'text-[#5B7194]'
               }`}
             >
               {t}
@@ -126,11 +126,11 @@ export function ClueList({ clues, selectedClue, onSelect, completed, grading, co
       {/* Larger screens: side-by-side columns. */}
       <div className="hidden grid-cols-2 gap-4 sm:grid">
         <div>
-          <h3 className="font-sg mb-1 text-xs font-bold uppercase tracking-wide text-[#8E87A8]">Across</h3>
+          <h3 className="font-sg mb-1 text-xs font-bold uppercase tracking-wide text-[#7A8DB0]">Across</h3>
           <ul className="space-y-0.5">{renderList(across, 'd')}</ul>
         </div>
         <div>
-          <h3 className="font-sg mb-1 text-xs font-bold uppercase tracking-wide text-[#8E87A8]">Down</h3>
+          <h3 className="font-sg mb-1 text-xs font-bold uppercase tracking-wide text-[#7A8DB0]">Down</h3>
           <ul className="space-y-0.5">{renderList(down, 'd')}</ul>
         </div>
       </div>

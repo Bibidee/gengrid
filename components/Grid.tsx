@@ -76,7 +76,7 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
 
   return (
     <div
-      className="inline-grid select-none border-2 border-[#3A3357]"
+      className="inline-grid select-none border-2 border-[#1E2E4A]"
       style={{ gridTemplateColumns: `repeat(${size}, ${cellPx}px)`, gridAutoRows: `${cellPx}px` }}
     >
       {Array.from({ length: size }).map((_, r) =>
@@ -84,9 +84,9 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
           const key = `${r},${c}`;
           // Per-cell borders (not gaps) draw the grid lines so they survive
           // fractional display scaling; box-sizing keeps cells square.
-          const cellBorder = `border-[#3A3357] ${c < size - 1 ? 'border-r' : ''} ${r < size - 1 ? 'border-b' : ''}`;
+          const cellBorder = `border-[#1E2E4A] ${c < size - 1 ? 'border-r' : ''} ${r < size - 1 ? 'border-b' : ''}`;
           if (black.has(key)) {
-            return <div key={key} className={`bg-[#050308] ${cellBorder}`} />;
+            return <div key={key} className={`bg-[#040610] ${cellBorder}`} />;
           }
           const number = clueNumbers[key];
           const highlighted = isInSelectedClue(r, c);
@@ -95,15 +95,15 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
           // dark glass cells, purple word highlight, faint green/red review
           // tints that stay visible on the dark background.
           const bg = highlighted
-            ? 'bg-[#3E3670]'
+            ? 'bg-[#272256]'
             : shade === 'correct'
               ? 'bg-[#16371F]'
               : shade === 'wrong'
                 ? 'bg-[#3F1F27]'
-                : 'bg-[#191426]';
+                : 'bg-[#141D35]';
           return (
             <div key={key} className={`relative ${bg} ${cellBorder}`}>
-              {number && <span className="absolute left-0.5 top-0 z-10 text-[9px] leading-none text-[#8E87A8]">{number}</span>}
+              {number && <span className="absolute left-0.5 top-0 z-10 text-[9px] leading-none text-[#7A8DB0]">{number}</span>}
               <input
                 id={cellId(r, c)}
                 value={values[key] ?? ''}
@@ -146,7 +146,7 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
                 inputMode="text"
                 enterKeyHint="next"
                 aria-label={`Row ${r + 1}, column ${c + 1}`}
-                className={`font-sg h-full w-full bg-transparent text-center font-semibold uppercase text-[#F8FAFC] outline-none caret-[#6EE7F9] ${readOnly ? '' : 'focus:bg-[#8B7CFF] focus:text-[#0B0914]'}`}
+                className={`font-sg h-full w-full bg-transparent text-center font-semibold uppercase text-[#F8FAFC] outline-none caret-[#67E8F9] ${readOnly ? '' : 'focus:bg-[#7C3AED] focus:text-[#060816]'}`}
                 // font-size >= 16px prevents iOS Safari auto-zoom on focus;
                 // touch-action removes double-tap zoom delay on the grid.
                 style={{ fontSize: 16, touchAction: 'manipulation' }}

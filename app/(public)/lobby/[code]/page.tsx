@@ -78,12 +78,13 @@ export default function LobbyPage() {
   const rulesCard = (
     <div className="glass-card w-full max-w-xs px-6 py-5 text-left">
       <p className="kicker mb-3">How to Play</p>
-      <ol className="space-y-2.5 text-[0.8rem] leading-relaxed text-[#9CA3B8]">
+      <ol className="space-y-2.5 text-[0.8rem] leading-relaxed text-[#94A3B8]">
         <li><span className="font-semibold text-[#F8FAFC]">1.</span> When the host starts, everyone gets the same crossword at the same time.</li>
         <li><span className="font-semibold text-[#F8FAFC]">2.</span> Tap a square and type. Tap it again to switch between across and down.</li>
         <li><span className="font-semibold text-[#F8FAFC]">3.</span> Beat the clock — submit before the timer hits 00:00, or your answers submit automatically.</li>
         <li><span className="font-semibold text-[#F8FAFC]">4.</span> Stay on the game screen. Leaving for 45+ seconds locks in your answers as-is.</li>
         <li><span className="font-semibold text-[#F8FAFC]">5.</span> Most correct answers wins — fastest time breaks ties. Leaderboard unlocks when the round ends.</li>
+        <li><span className="font-semibold text-[#F8FAFC]">6.</span> Don&apos;t submit per question — submit only once, when you&apos;re done filling the entire board.</li>
       </ol>
     </div>
   );
@@ -107,7 +108,7 @@ export default function LobbyPage() {
         <div className="orbit-ring" />
         <div className="orbit-ring r2" />
         <div className="orbit-core">
-          <span className="font-sg bg-gradient-to-br from-[#A79BFF] via-[#D9A8FF] to-[#6EE7F9] bg-clip-text text-2xl font-bold text-transparent">
+          <span className="font-sg grad-shimmer text-2xl font-bold">
             GG
           </span>
         </div>
@@ -131,10 +132,10 @@ export default function LobbyPage() {
         })}
       </div>
 
-      <p className="font-arena-mono mb-1.5 text-xs tracking-[0.1em] text-[#9CA3B8]">
+      <p className="font-arena-mono mb-1.5 text-xs tracking-[0.1em] text-[#94A3B8]">
         {status ? `${status.player_count} competitor${status.player_count === 1 ? '' : 's'} in the arena` : '···'}
       </p>
-      <p className="font-arena-mono flex items-center justify-center gap-2 text-[0.66rem] tracking-[0.1em] text-[#64607A]">
+      <p className="font-arena-mono flex items-center justify-center gap-2 text-[0.66rem] tracking-[0.1em] text-[#5B7194]">
         <span className="wait-dots">
           <span>.</span>
           <span>.</span>
@@ -152,20 +153,20 @@ export default function LobbyPage() {
       <button
         type="button"
         onClick={() => setShowRules(true)}
-        className="mt-5 rounded-full border border-[rgba(139,124,255,0.4)] bg-[rgba(139,124,255,0.12)] px-5 py-2 text-sm font-semibold text-[#F8FAFC] lg:hidden"
+        className="mt-5 rounded-full border border-[rgba(124,58,237,0.4)] bg-[rgba(124,58,237,0.12)] px-5 py-2 text-sm font-semibold text-[#F8FAFC] lg:hidden"
       >
         How to play
       </button>
       </div>
       </div>
 
-      <p className="mt-8 max-w-sm text-xs text-[#64607A]">
+      <p className="mt-8 max-w-sm text-xs text-[#5B7194]">
         The match starts automatically once the admin begins the room.
       </p>
 
       {showRules && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(11,9,20,0.8)] px-6 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(6,8,22,0.8)] px-6 backdrop-blur-sm lg:hidden"
           onClick={() => setShowRules(false)}
         >
           <div onClick={(e) => e.stopPropagation()} className="relative">
@@ -174,7 +175,7 @@ export default function LobbyPage() {
               type="button"
               onClick={() => setShowRules(false)}
               aria-label="Close rules"
-              className="absolute right-3 top-3 text-lg text-[#9CA3B8]"
+              className="absolute right-3 top-3 text-lg text-[#94A3B8]"
             >
               ✕
             </button>

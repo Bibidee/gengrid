@@ -48,7 +48,7 @@ export default function JoinPage() {
     <main className="flex min-h-screen items-center justify-center px-6">
       <form onSubmit={handleSubmit} className="glass-card w-full max-w-md px-8 py-10 text-center sm:px-12">
         <h1 className="font-sg text-2xl font-semibold tracking-tight text-[#F8FAFC]">Join a Match</h1>
-        <p className="mb-9 mt-2 text-sm font-light text-[#9CA3B8]">
+        <p className="mb-9 mt-2 text-sm font-light text-[#94A3B8]">
           Enter your arena code and competitor name.
         </p>
 

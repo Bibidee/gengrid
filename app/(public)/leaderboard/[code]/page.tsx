@@ -68,18 +68,18 @@ export default function LeaderboardPage() {
       <div className="mx-auto max-w-xl">
         <div className="mb-8 text-center">
           <div className="kicker mb-2">Arena · {roomCode}</div>
-          <h1 className="font-sg text-3xl font-semibold tracking-tight text-[#F8FAFC]">Final Standings</h1>
+          <h1 className="font-sg grad-shimmer text-3xl font-semibold tracking-tight">Final Standings</h1>
         </div>
 
         {view.kind === 'loading' && (
-          <p className="font-arena-mono text-center text-sm text-[#9CA3B8]">Loading…</p>
+          <p className="font-arena-mono text-center text-sm text-[#94A3B8]">Loading…</p>
         )}
 
         {view.kind === 'error' && <p className="text-center text-[#FF6B81]">{view.message}</p>}
 
         {view.kind === 'not_ended' && (
           <div className="glass-card flex flex-col items-center gap-4 px-6 py-10 text-center">
-            <p className="font-light text-[#9CA3B8]">
+            <p className="font-light text-[#94A3B8]">
               The round is still in progress. The leaderboard unlocks when the timer reaches 00:00.
             </p>
             {view.ends_at && (
@@ -89,7 +89,7 @@ export default function LeaderboardPage() {
         )}
 
         {view.kind === 'finalizing' && (
-          <div className="glass-card px-6 py-10 text-center font-light text-[#9CA3B8]">
+          <div className="glass-card px-6 py-10 text-center font-light text-[#94A3B8]">
             Calculating final results…
           </div>
         )}
@@ -106,13 +106,13 @@ export default function LeaderboardPage() {
                   return (
                     <div key={e.player_id} className={`podium-card ${cls} max-w-[160px] flex-1 px-3 py-5 text-center`}>
                       <div className="mb-1.5 text-3xl">{medal}</div>
-                      <div className="font-arena-mono mb-1 text-[0.58rem] uppercase tracking-[0.14em] text-[#64607A]">
+                      <div className="font-arena-mono mb-1 text-[0.58rem] uppercase tracking-[0.14em] text-[#5B7194]">
                         {label}
                       </div>
                       <div className="font-sg mb-1 truncate text-base font-semibold text-[#F8FAFC]">{e.username}</div>
                       <div className={`font-arena-mono text-xl font-medium ${scoreColor}`}>{e.score}</div>
                       {e.correct_words != null && e.total_words != null && (
-                        <div className="mt-1 text-[0.7rem] text-[#64607A]">
+                        <div className="mt-1 text-[0.7rem] text-[#5B7194]">
                           {e.correct_words}/{e.total_words} words
                         </div>
                       )}

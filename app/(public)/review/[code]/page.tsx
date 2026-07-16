@@ -134,7 +134,7 @@ export default function ReviewPage() {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
         <p className="text-[#FF6B81]">{error}</p>
-        <Link href={`/leaderboard/${roomCode}`} className="text-sm text-[#9CA3B8] underline">
+        <Link href={`/leaderboard/${roomCode}`} className="text-sm text-[#94A3B8] underline">
           Back to leaderboard
         </Link>
       </main>
@@ -144,21 +144,21 @@ export default function ReviewPage() {
   if (!layout || !review) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <p className="font-arena-mono text-sm text-[#9CA3B8]">Loading your board…</p>
+        <p className="font-arena-mono text-sm text-[#94A3B8]">Loading your board…</p>
       </main>
     );
   }
 
   return (
     <main className="min-h-screen pb-8">
-      <header className="border-b border-[rgba(255,255,255,0.08)] bg-[rgba(11,9,20,0.85)] px-4 py-3 backdrop-blur-md">
+      <header className="border-b border-[rgba(255,255,255,0.08)] bg-[rgba(6,8,22,0.85)] px-4 py-3 backdrop-blur-md">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 pr-12">
           <div className="min-w-0">
             <h1 className="font-sg truncate text-base font-semibold text-[#F8FAFC] sm:text-xl">
               Your board — {layout.title}
             </h1>
-            <p className="font-arena-mono text-[11px] text-[#8E87A8]">
-              {review.username} · Room <span className="font-semibold text-[#6EE7F9]">{roomCode}</span>
+            <p className="font-arena-mono text-[11px] text-[#7A8DB0]">
+              {review.username} · Room <span className="font-semibold text-[#67E8F9]">{roomCode}</span>
               {review.correct_words != null && review.total_words != null
                 ? ` · ${review.correct_words}/${review.total_words} words correct · ${review.score} pts`
                 : ` · ${review.score} pts`}
@@ -190,7 +190,7 @@ export default function ReviewPage() {
               cellShading={cellShading}
               />
             </div>
-            <p className="mt-2 text-xs text-[#64607A]">
+            <p className="mt-2 text-xs text-[#5B7194]">
               Read-only view of the answers you submitted.
             </p>
           </div>
