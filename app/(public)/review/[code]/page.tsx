@@ -155,7 +155,7 @@ export default function ReviewPage() {
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 pr-12">
           <div className="min-w-0">
             <h1 className="font-sg truncate text-base font-semibold text-[#F8FAFC] sm:text-xl">
-              Your board — {layout.title}
+              Your board · {layout.title}
             </h1>
             <p className="font-arena-mono text-[11px] text-[#7A8DB0]">
               {review.username} · Room <span className="font-semibold text-[#67E8F9]">{roomCode}</span>

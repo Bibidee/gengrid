@@ -81,10 +81,10 @@ export default function LobbyPage() {
       <ol className="space-y-2.5 text-[0.8rem] leading-relaxed text-[#94A3B8]">
         <li><span className="font-semibold text-[#F8FAFC]">1.</span> When the host starts, everyone gets the same crossword at the same time.</li>
         <li><span className="font-semibold text-[#F8FAFC]">2.</span> Tap a square and type. Tap it again to switch between across and down.</li>
-        <li><span className="font-semibold text-[#F8FAFC]">3.</span> Beat the clock — submit before the timer hits 00:00, or your answers submit automatically.</li>
+        <li><span className="font-semibold text-[#F8FAFC]">3.</span> Beat the clock. Submit before the timer hits 00:00, or your answers submit automatically.</li>
         <li><span className="font-semibold text-[#F8FAFC]">4.</span> Stay on the game screen. Leaving for 45+ seconds locks in your answers as-is.</li>
-        <li><span className="font-semibold text-[#F8FAFC]">5.</span> Most correct answers wins — fastest time breaks ties. Leaderboard unlocks when the round ends.</li>
-        <li><span className="font-semibold text-[#F8FAFC]">6.</span> Don&apos;t submit per question — submit only once, when you&apos;re done filling the entire board.</li>
+        <li><span className="font-semibold text-[#F8FAFC]">5.</span> Most correct answers wins. Fastest time breaks ties. Leaderboard unlocks when the round ends.</li>
+        <li><span className="font-semibold text-[#F8FAFC]">6.</span> Do not submit per question. Submit only once, when you are done filling the entire board.</li>
       </ol>
     </div>
   );

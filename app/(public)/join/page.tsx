@@ -38,7 +38,7 @@ export default function JoinPage() {
 
       router.push(`/lobby/${roomCode.trim().toUpperCase()}`);
     } catch {
-      setError('Network error — please try again');
+      setError('Network error. Please try again');
     } finally {
       setLoading(false);
     }

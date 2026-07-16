@@ -31,7 +31,8 @@ type PlayPayload = {
 };
 
 const SYNC_INTERVAL_MS = 15_000;
-const OFFSET_REFRESH_MS = 30_000;
+// Also how quickly players notice an admin force-end (status poll interval).
+const OFFSET_REFRESH_MS = 10_000;
 // Anti-cheat: leaving the game screen (switching tabs/apps) for longer than
 // this auto-submits the player's answers as-is when they return.
 const AWAY_LIMIT_MS = 45_000;
@@ -202,7 +203,11 @@ export default function PlayPage() {
   }, [roomCode]);
 
   // Refresh the clock-skew offset periodically from the status endpoint so a
-  // drifting/wrong device clock never desyncs the visible countdown.
+  // drifting/wrong device clock never desyncs the visible countdown. The same
+  // poll detects an admin force-end: the room reports "finished" before the
+  // original timer would expire, so treat it exactly like the timer hitting
+  // zero (auto-submit anyone who hasn't, then everyone to the leaderboard).
+  const expireRef = useRef<() => void>(() => {});
   usePolling(
     async () => {
       try {
@@ -210,8 +215,9 @@ export default function PlayPage() {
         if (!res.ok) return;
         const data = await res.json();
         if (data.server_now) setClockOffsetMs(computeClockOffsetMs(data.server_now));
+        if (data.status === 'finished') expireRef.current();
       } catch {
-        // transient network error — keep last known offset
+        // transient network error, keep last known offset
       }
     },
     OFFSET_REFRESH_MS,
@@ -350,6 +356,9 @@ export default function PlayPage() {
     }
     router.push(`/leaderboard/${roomCode}`);
   }, [handleSubmit, router, roomCode]);
+  // The status poll above is declared before handleExpire exists, so it
+  // reaches it through this ref.
+  expireRef.current = handleExpire;
 
   if (error) {
     return (
@@ -492,7 +501,7 @@ export default function PlayPage() {
               Have you filled all the boxes?
             </h2>
             <p className="mb-6 text-sm text-[#94A3B8]">
-              Once you submit, your answers are locked — you can&apos;t change them. Are you sure
+              Once you submit, your answers are locked and cannot be changed. Are you sure
               you want to submit?
             </p>
             <div className="flex justify-center gap-3">

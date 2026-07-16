@@ -70,7 +70,7 @@ export function Leaderboard({ entries, highlightUsername }: Props) {
                 <td className="font-arena-mono whitespace-nowrap px-2 py-2.5 text-right text-[#94A3B8]">
                   {e.correct_words != null && e.total_words != null
                     ? `${e.correct_words}/${e.total_words}`
-                    : '—'}
+                    : '-'}
                 </td>
                 <td className="font-arena-mono px-3 py-2.5 text-right text-[#94A3B8]">{e.time_used_seconds}s</td>
               </tr>

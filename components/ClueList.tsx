@@ -74,7 +74,7 @@ export function ClueList({ clues, selectedClue, onSelect, completed, grading, co
               {isRevealed ? (
                 <p className="text-xs">
                   <span className="text-[#94A3B8]">
-                    You: <span className="font-arena-mono">{submittedWords?.[key]?.trim() || '—'}</span>
+                    You: <span className="font-arena-mono">{submittedWords?.[key]?.trim() || '-'}</span>
                   </span>
                   <span className="mx-1 text-[#5B7194]">→</span>
                   <span className="font-arena-mono font-semibold text-[#34D399]">{correction}</span>
