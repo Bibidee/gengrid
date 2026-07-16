@@ -48,6 +48,9 @@ export default function PlayPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
+  // Manual submit asks for confirmation first; auto-submits (timer expiry,
+  // away timeout) skip the prompt.
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [showBoard, setShowBoard] = useState(false);
   // Cosmetic 3-2-1-GO overlay shown only when the player arrives within ~5s
   // of the round's server-authoritative start. Never affects timing.
@@ -466,7 +469,7 @@ export default function PlayPage() {
 
         <button
           type="button"
-          onClick={handleSubmit}
+          onClick={() => setConfirmOpen(true)}
           disabled={submitting}
           className="btn-arena-primary hidden self-start px-7 py-2.5 sm:block"
         >
@@ -474,12 +477,53 @@ export default function PlayPage() {
         </button>
       </div>
 
+      {/* Confirm-before-submit: only the Yes button fires the real submit. */}
+      {confirmOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(6,8,22,0.85)] px-6 backdrop-blur-sm"
+          onClick={() => setConfirmOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="glass-card w-full max-w-sm px-7 py-6 text-center"
+          >
+            <p className="kicker mb-3">Submit Answers</p>
+            <h2 className="font-sg mb-2 text-lg font-semibold text-[#F8FAFC]">
+              Have you filled all the boxes?
+            </h2>
+            <p className="mb-6 text-sm text-[#94A3B8]">
+              Once you submit, your answers are locked — you can&apos;t change them. Are you sure
+              you want to submit?
+            </p>
+            <div className="flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmOpen(false);
+                  handleSubmit();
+                }}
+                className="btn-arena-primary px-8 py-2.5"
+              >
+                Yes, submit
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(false)}
+                className="btn-arena-ghost px-8 py-2.5"
+              >
+                No, keep playing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Always-accessible submit on small screens; sits below content so it
           never covers the grid. */}
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[rgba(255,255,255,0.08)] bg-[rgba(6,8,22,0.9)] px-4 py-3 backdrop-blur-md sm:hidden">
         <button
           type="button"
-          onClick={handleSubmit}
+          onClick={() => setConfirmOpen(true)}
           disabled={submitting}
           className="btn-arena-primary w-full px-6 py-3"
         >
