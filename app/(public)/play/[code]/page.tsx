@@ -27,6 +27,7 @@ type PlayPayload = {
   starts_at: string | null;
   ends_at: string | null;
   synced_answers: Record<string, string> | null;
+  prefilled?: Record<string, string> | null;
   server_now?: string;
 };
 
@@ -139,11 +140,17 @@ export default function PlayPage() {
         }
 
         // Restore fallback: localStorage empty (new device/cleared) but the
-        // server has this player's last synced answers.
+        // server has this player's last synced answers. Prefilled hint cells
+        // always overlay whatever was restored - they are part of the board.
         const local = loadAnswers(roomCode);
-        if (Object.keys(local).length === 0 && playData.synced_answers) {
-          setValues(playData.synced_answers);
-          saveAnswers(roomCode, playData.synced_answers);
+        const base =
+          Object.keys(local).length === 0 && playData.synced_answers
+            ? playData.synced_answers
+            : local;
+        const withHints = playData.prefilled ? { ...base, ...playData.prefilled } : base;
+        if (withHints !== local || playData.prefilled) {
+          setValues(withHints);
+          saveAnswers(roomCode, withHints);
         }
       } catch {
         setError('Network error loading puzzle');
@@ -412,6 +419,7 @@ export default function PlayPage() {
               selectedClue={null}
               onSelectCell={() => {}}
               readOnly
+              prefilled={puzzle.prefilled}
             />
           </div>
         )}
@@ -455,6 +463,7 @@ export default function PlayPage() {
                 onChange={handleChange}
                 selectedClue={selectedClue}
                 onSelectCell={handleSelectCell}
+                prefilled={puzzle.prefilled}
               />
             </div>
 

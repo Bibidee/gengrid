@@ -23,9 +23,12 @@ type Props = {
   readOnly?: boolean;
   /** Post-game review: faint per-cell correctness tint ("row,col" keys). */
   cellShading?: Record<string, 'correct' | 'wrong'>;
+  /** Hint cells baked into the puzzle ("row,col" -> letter): pre-filled,
+      styled distinctly, and not editable. */
+  prefilled?: Record<string, string> | null;
 };
 
-export function Grid({ size, blackCells, clueNumbers, values, onChange, selectedClue, onSelectCell, readOnly = false, cellShading }: Props) {
+export function Grid({ size, blackCells, clueNumbers, values, onChange, selectedClue, onSelectCell, readOnly = false, cellShading, prefilled }: Props) {
   const instanceId = useId();
   const black = new Set(blackCells.map(([r, c]) => `${r},${c}`));
 
@@ -91,6 +94,7 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
           const number = clueNumbers[key];
           const highlighted = isInSelectedClue(r, c);
           const shade = cellShading?.[key];
+          const isHint = prefilled?.[key] != null;
           // Explicit dark-theme colors (never rely on prefers-color-scheme):
           // dark glass cells, purple word highlight, faint green/red review
           // tints that stay visible on the dark background.
@@ -108,7 +112,7 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
                 id={cellId(r, c)}
                 value={values[key] ?? ''}
                 onChange={(e) => {
-                  if (readOnly) return;
+                  if (readOnly || isHint) return;
                   // Letters and digits — some answers are alphanumeric (e.g. "A2A").
                   const v = e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(-1).toUpperCase();
                   onChange(r, c, v);
@@ -137,7 +141,7 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
                   if (document.activeElement?.id === cellId(r, c)) onSelectCell(r, c);
                 }}
                 onKeyDown={(e) => handleKeyDown(e, r, c)}
-                readOnly={readOnly}
+                readOnly={readOnly || isHint}
                 maxLength={1}
                 autoComplete="off"
                 autoCorrect="off"
@@ -146,7 +150,7 @@ export function Grid({ size, blackCells, clueNumbers, values, onChange, selected
                 inputMode="text"
                 enterKeyHint="next"
                 aria-label={`Row ${r + 1}, column ${c + 1}`}
-                className={`font-sg h-full w-full bg-transparent text-center font-semibold uppercase text-[#F8FAFC] outline-none caret-[#67E8F9] ${readOnly ? '' : 'focus:bg-[#7C3AED] focus:text-[#060816]'}`}
+                className={`font-sg h-full w-full bg-transparent text-center font-semibold uppercase outline-none caret-[#67E8F9] ${isHint ? 'text-[#67E8F9]' : 'text-[#F8FAFC]'} ${readOnly || isHint ? '' : 'focus:bg-[#7C3AED] focus:text-[#060816]'}`}
                 // font-size >= 16px prevents iOS Safari auto-zoom on focus;
                 // touch-action removes double-tap zoom delay on the grid.
                 style={{ fontSize: 16, touchAction: 'manipulation' }}

@@ -84,6 +84,9 @@ export async function GET(
     cols: puzzle.cols,
     black_cells: template.grid_layout.black_cells,
     clue_numbers: template.grid_layout.clue_numbers,
+    // Optional hint cells ("row,col" -> letter) baked into the template by
+    // seed scripts; shown pre-filled and locked on every player's board.
+    prefilled: template.grid_layout.prefilled ?? null,
     clues,
     starts_at: room.starts_at,
     ends_at: room.ends_at,
