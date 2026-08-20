@@ -16,9 +16,9 @@ type Q = { clue: string; answer: string };
 
 const QUESTIONS: Q[] = [
   { clue: 'Who keeps the community updated each month with the GenLayer Community Spotlight?', answer: 'RUZGAR' },
-  { clue: 'Which Discord Core is involved in event announcements?', answer: 'GLATCHER' },
+  { clue: 'Which community member is involved in event announcements?', answer: 'GLATCHER' },
   { clue: 'Who recently dropped the GenLayer Community Brand Kit on X?', answer: 'ACTION' },
-  { clue: 'Who recently published "GenLayer Points Explained: XP, CP, BP, GLP" on X?', answer: 'HILLS' },
+  { clue: 'Which community member recently published "GenLayer Points Explained: XP, CP, BP, GLP" on X?', answer: 'HILLS' },
   { clue: 'Who is the Discord Core most active in the Neural Activity channel?', answer: 'ALEXEI' },
   { clue: 'What is the new single score that BP and CP were converted into?', answer: 'GLP' },
   { clue: 'What percentage of the total GLP supply was distributed in the first conversion?', answer: 'SIXTY' },
