@@ -439,7 +439,7 @@ export default function PlayPage() {
             </div>
 
             {selectedClue && (
-              <div className="mt-3 rounded-xl border border-[rgba(124,58,237,0.28)] bg-[rgba(124,58,237,0.14)] px-3 py-2 text-sm text-[#F8FAFC]">
+              <div className="mt-3 w-0 min-w-full rounded-xl border border-[rgba(124,58,237,0.28)] bg-[rgba(124,58,237,0.14)] px-3 py-2 text-sm text-[#F8FAFC]">
                 <span className="font-arena-mono mr-1 text-xs font-bold text-[#9D60FF]">
                   {selectedClue.clue_number}
                   {selectedClue.direction === 'across' ? 'A' : 'D'}.
