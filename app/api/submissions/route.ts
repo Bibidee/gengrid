@@ -65,7 +65,9 @@ export async function POST(request: Request) {
   }
 
   // Server-clock-only lateness check for genuinely new submissions.
-  if (room.ends_at && Date.now() > new Date(room.ends_at).getTime()) {
+  // 5s grace covers network round-trip from a client auto-submit fired at 00:00.
+  const SUBMIT_GRACE_MS = 5000;
+  if (room.ends_at && Date.now() > new Date(room.ends_at).getTime() + SUBMIT_GRACE_MS) {
     return NextResponse.json({ error: 'Submission window has closed' }, { status: 409 });
   }
 

@@ -328,10 +328,21 @@ export default function PlayPage() {
     }
   }, [submitting, roomCode, submittedAnswers]);
 
-  // Timer hit 00:00: auto-submit anyone who hasn't, then everyone moves to
-  // the leaderboard (which only unlocks server-side after ends_at).
+  // Timer hit 00:00: sync the latest answers to the server so finalization
+  // has them even if the submission POST arrives slightly late, then submit.
   const handleExpire = useCallback(async () => {
     if (!submittedRef.current) {
+      const session = loadPlayerSession(roomCode);
+      if (session && Object.keys(valuesRef.current).length > 0) {
+        try {
+          await fetch('/api/answers/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_token: session.session_token, answers: valuesRef.current }),
+            keepalive: true,
+          });
+        } catch {}
+      }
       await handleSubmit();
     }
     router.push(`/leaderboard/${roomCode}`);
