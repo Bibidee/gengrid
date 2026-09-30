@@ -3,12 +3,12 @@ config({ path: '.env.local' });
 import { createClient } from '@supabase/supabase-js';
 import { deriveSlotsAndNumbering, validateGrid, type Cell } from '../lib/crossword-derive';
 
-// Seeds the "Genlayer 6.0" 15x15 puzzle: places this week's 20 community
+// Seeds the "Genlayer 6.0.1" 15x15 puzzle: places this week's 20 community
 // questions' answers scrabble-style (only word cells are white, everything
 // else black), so the derived slots correspond 1:1 to the answers.
 // Clean board — no prefilled hint letters.
 // If all 20 can't fit, falls back tier by tier to smaller word sets.
-// Run: npx tsx scripts/seed-genlayer-6.0.ts [--dry-run]
+// Run: npx tsx scripts/seed-genlayer-6.0.1.ts [--dry-run]
 
 const SIZE = 15;
 
@@ -264,7 +264,7 @@ async function main() {
   const { data: template, error: templateError } = await supabase
     .from('templates')
     .insert({
-      name: `Genlayer 6.0 15x15 — ${n} Questions`,
+      name: `Genlayer 6.0.1 15x15 — ${n} Questions`,
       board_size: SIZE,
       rows: SIZE,
       cols: SIZE,
@@ -279,8 +279,8 @@ async function main() {
   const { data: puzzle, error: puzzleError } = await supabase
     .from('puzzles')
     .insert({
-      title: 'Genlayer 6.0',
-      theme: 'GenLayer 6.0',
+      title: 'Genlayer 6.0.1',
+      theme: 'GenLayer 6.0.1',
       board_size: SIZE,
       rows: SIZE,
       cols: SIZE,
@@ -311,7 +311,7 @@ async function main() {
   const { error: cluesError } = await supabase.from('puzzle_clues').insert(clueRows);
   if (cluesError) throw new Error(`Insert puzzle_clues failed: ${cluesError.message}`);
 
-  console.log(`\nSeeded puzzle "${puzzle.id}" (Genlayer 6.0) with ${clueRows.length} clues, status=ready.`);
+  console.log(`\nSeeded puzzle "${puzzle.id}" (Genlayer 6.0.1) with ${clueRows.length} clues, status=ready.`);
 }
 
 main().catch((err) => {
