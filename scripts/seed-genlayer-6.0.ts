@@ -27,7 +27,7 @@ const QUESTIONS: Q[] = [
   { clue: 'Who is the only person in the GenLayer community with the Builders Core role?', answer: 'PAVEL' },
   { clue: 'How many Singularity members are there?', answer: 'THIRTY' },
   { clue: 'How many teams were recognized in the Agent Tank Hackathon?', answer: 'NINE' },
-  { clue: 'How many community events grant points?', answer: 'FOUR' },
+  { clue: 'Which GenLayer testnet is known as the "scholar\'s gym"?', answer: 'BRADBURY' },
   { clue: 'Which project joined Internet Court?', answer: 'BLOCKSEE' },
   { clue: 'How many accounts does GenLayer Foundation follow on X?', answer: 'FOURTEEN' },
   { clue: 'Where is Albert speaking today at #KBW2026?', answer: 'SEOUL' },
