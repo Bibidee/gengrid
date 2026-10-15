@@ -38,7 +38,7 @@ export async function POST(request: Request) {
   for (const [key, value] of Object.entries(answersRaw)) {
     if (!/^\d{1,2},\d{1,2}$/.test(key)) continue;
     if (typeof value !== 'string') continue;
-    const letter = value.replace(/[^a-zA-Z]/g, '').slice(0, 1).toUpperCase();
+    const letter = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 1).toUpperCase();
     if (!letter) continue;
     answers[key] = letter;
     if (++count >= MAX_CELLS) break;
